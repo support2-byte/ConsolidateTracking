@@ -1960,6 +1960,9 @@
             document.getElementById('route').style.display = 'flex';
             document.getElementById('refId').textContent = data.booking_ref || '—';
             document.getElementById('orderId').textContent = data.order_id || '—';
+            let totalWeight = 0;
+            const eta = data.receivers[0]?.eta || data.eta;
+            
             document.getElementById('qty').textContent = data.total_assigned_qty || '—';
             document.getElementById('wgt').textContent = totalWeight > 0 ? `${totalWeight} kg` : '—';
             document.getElementById('etaTop').textContent = eta ? new Date(eta).toLocaleDateString() : '—';
@@ -1967,10 +1970,8 @@
             document.getElementById('lastUpdated').textContent = `Last updated: ${new Date().toLocaleString()}`;
             document.getElementById('lastUpdated').style.display = 'block';
             document.getElementById('actions').style.display = 'flex';
-            const eta = data.receivers[0]?.eta || data.eta;
             buildTimeline(data);
             buildDetailsPanel(data);
-            let totalWeight = 0;
             data.receivers.forEach(receiver => {
                 receiver.items.forEach(item => {
                     totalWeight += item.weight || 0;
