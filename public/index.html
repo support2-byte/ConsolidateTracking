@@ -1878,42 +1878,73 @@
 
         // Track shipment function
         async function trackShipment() {
-            const refInput = document.getElementById('refInput').value.trim();
-            const errorDiv = document.getElementById('errorMessage');
-            if (!refInput) {
-                showError('Please enter a reference ID');
-                return;
+    const refInput = document.getElementById('refInput').value.trim();
+    const errorDiv = document.getElementById('errorMessage');
+    const btn = document.getElementById('searchBtn');
+    const originalText = btn.textContent;
+
+    // Early validation
+    if (!refInput) {
+        showError('Please enter a reference ID');
+        return;
+    }
+
+    hideResults();
+    errorDiv.style.display = 'none';
+
+    // Loading state
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+
+    try {
+        const url = `https://consolidate.onrender.com/api/orders/track/item/${encodeURIComponent(refInput)}`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // Remove unnecessary headers — server must handle CORS
+                // If you need Authorization later: 'Authorization': `Bearer ${token}`
+            },
+            // mode: 'cors' is default — no need to set unless forcing 'no-cors' (which you don't want)
+        });
+
+        // Check if response was successful (200–299)
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('No shipment found with this reference ID');
             }
-            hideResults();
-            errorDiv.style.display = 'none';
-            const btn = document.getElementById('searchBtn');
-            const originalText = btn.textContent;
-            btn.textContent = 'Loading...';
-            btn.disabled = true;
-            try {
-                const response = await fetch(`${API_BASE_URL}/${encodeURIComponent(refInput)}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
-                });
-                const data = await response.json();
-                await new Promise(resolve => setTimeout(resolve, 800));
-                if (data.success) {
-                    currentShipmentData = data.data;
-                    displayResults(data.data);
-                } else {
-                    showError(data.message || 'No shipment found with this reference ID');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showError('Failed to fetch shipment data. Please try again.');
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
+            if (response.status >= 500) {
+                throw new Error('Server error — please try again later');
             }
+            throw new Error(`Request failed: ${response.status} ${response.statusText}`);
         }
+
+        const data = await response.json();
+
+        // Optional small delay for UX (can remove if not needed)
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        if (data.success) {
+            currentShipmentData = data.data;
+            displayResults(data.data);
+        } else {
+            showError(data.message || 'No shipment found with this reference ID');
+        }
+    } catch (error) {
+        console.error('Track shipment error:', error);
+        // Differentiate network vs other errors
+        const message = error.name === 'TypeError' && error.message.includes('fetch')
+            ? 'Network error — check your internet or try again later'
+            : error.message || 'Failed to fetch shipment data. Please try again.';
+        showError(message);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+ 
+
         const placeMap = {
             '5': 'KARACHI',
             '2': 'DUBAI',
