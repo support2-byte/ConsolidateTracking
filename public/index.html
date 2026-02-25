@@ -2056,7 +2056,7 @@ const RGS_PHASES = [
                 });
             });
             document.getElementById('wgt').textContent = totalWeight > 0 ? `${totalWeight} kg` : '—';
-            buildVerticalTimeline(data)
+           buildVerticalTimeline(data.receivers[0]);
         }
 
 // Build horizontal timeline visualization using the full RGS_PHASES
@@ -2130,55 +2130,67 @@ function buildTimeline(data) {
     }
 }
 
+
 function buildVerticalTimeline(receiver) {
     const panel = document.getElementById('timelinePanel');
     if (!panel) return;
 
-    panel.innerHTML = ''; // clear previous content
+    panel.innerHTML = ''; // clear
 
-    // Get current status with fallback
-    let currentStatus = receiver.current_status?.trim() 
-                     || receiver.status?.trim() 
-                     || "Order Created";
+    // ──────────────────────────────────────────────
+    // Use the CORRECT status field: receiver.current_status
+    // ──────────────────────────────────────────────
+    let currentStatus = (receiver.current_status || receiver.status || "Order Created").trim();
 
-    // Find current position in phases
+    // Debug log (remove later)
+    console.log("Using currentStatus:", currentStatus);
+
+    // Find real index in phases
     const activeIndex = RGS_PHASES.findIndex(phase => phase.label === currentStatus);
-    const realActiveIndex = activeIndex === -1 ? 0 : activeIndex;
+    let realActiveIndex = activeIndex === -1 ? 0 : activeIndex;
+
+    // If status not in phases (e.g. "In Process"), fallback to first phase or try mapping
+    if (activeIndex === -1) {
+        console.warn("Status not found in RGS_PHASES:", currentStatus);
+        // Optional: map common generic statuses
+        if (currentStatus.toLowerCase().includes("process") || currentStatus.toLowerCase().includes("in process")) {
+            realActiveIndex = 0; // or 1, 2, etc. — adjust based on what "In Process" means
+        }
+    }
 
     // ──────────────────────────────────────────────
-    // Determine last updated time
+    // Last updated time (from latest history entry)
     // ──────────────────────────────────────────────
-    let lastUpdatedTime = new Date().toISOString(); // fallback to now
+    let lastUpdatedFormatted = rgsFmtTime(new Date().toISOString()); // fallback
     const latestHistory = receiver.status_history?.[receiver.status_history.length - 1];
 
     if (latestHistory?.time) {
-        lastUpdatedTime = latestHistory.time;
+        lastUpdatedFormatted = rgsFmtTime(latestHistory.time);
     }
 
-    const lastUpdatedFormatted = rgsFmtTime(lastUpdatedTime);
+    console.log("Last updated:", lastUpdatedFormatted);
 
     // ──────────────────────────────────────────────
-    // Show only phases up to current status
+    // Show phases UP TO current status only
     // ──────────────────────────────────────────────
     const phasesToShow = RGS_PHASES.slice(0, realActiveIndex + 1);
 
-    // Create track line (height based on visible phases)
+    // Track line
     const trackLine = document.createElement('div');
     trackLine.className = 'track-line';
     trackLine.style.height = `${phasesToShow.length * 75}px`;
     panel.appendChild(trackLine);
 
-    // Render each phase (up to current)
+    // Render phases
     phasesToShow.forEach((phase, index) => {
         const isActive = index === realActiveIndex;
         const isCompleted = index < realActiveIndex;
 
-        let itemClass = isActive ? 'active' : (isCompleted ? 'completed' : 'pending');
+        const itemClass = isActive ? 'active' : (isCompleted ? 'completed' : '');
 
         const item = document.createElement('div');
         item.className = `timeline-item ${itemClass}`;
 
-        // Show time only for the current/active phase
         let timeDisplay = '';
         if (isActive) {
             timeDisplay = `<div class="time">Updated: ${lastUpdatedFormatted}</div>`;
@@ -2195,7 +2207,7 @@ function buildVerticalTimeline(receiver) {
         panel.appendChild(item);
     });
 
-    // Optional: Show Expected Arrival only if current status is not final
+    // Expected Arrival (only if not final)
     const isFinal = ["Ready for Delivery", "Shipment Delivered"].includes(currentStatus);
     if (!isFinal && receiver.eta) {
         const etaBox = document.createElement('div');
@@ -2214,7 +2226,6 @@ function buildVerticalTimeline(receiver) {
 
     panel.style.display = 'block';
 }
-
 // Build detailed panel
         function buildDetailsPanel(data) {
             const panel = document.getElementById('timelinePanel');
