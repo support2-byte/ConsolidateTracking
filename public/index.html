@@ -35,7 +35,87 @@
         .mobile-menu-toggle {
             display: none;
         }
+.timelinePanel {
+    position: relative;
+    padding: 20px 0;
+    max-width: 700px;
+    margin: 0 auto;
+}
 
+.track-line {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #e5e7eb 0%, #e5e7eb 100%);
+    z-index: 1;
+}
+
+.timeline-item {
+    position: relative;
+    margin: 24px 0;
+    padding-left: 44px;
+    min-height: 60px;
+    z-index: 2;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #d1d5db;
+    border: 5px solid white;
+    box-shadow: 0 0 0 4px #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.completed .timeline-dot {
+    background: #10b981;           /* green */
+    box-shadow: 0 0 0 4px #d1fae5;
+}
+
+.active .timeline-dot {
+    background: var(--rg-orange);           /* blue */
+    box-shadow: 0 0 0 6px #dbeafe;
+    animation: pulse 2s infinite;
+}
+
+.pending .timeline-dot,
+.future .timeline-dot {
+    background: #9ca3af;
+    border-color: #e5e7eb;
+    box-shadow: none;
+}
+
+.timeline-content {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.status {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.tip {
+    font-size: 0.92rem;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
+    70% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
+    100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
         .mobile-menu-toggle+label {
             display: none;
             flex-direction: column;
@@ -663,7 +743,7 @@
 
         .status-message {
             text-align: center;
-            font-size: 15px;
+            font-size: 22px;
             color: var(--rg-subtext);
             margin-top: 12px;
             font-weight: 500
@@ -696,13 +776,14 @@
         }
 
         .panel {
-            background: #fff;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            background: transparent;
+            /* border-radius: var(--radius); */
+            /* box-shadow: var(--shadow); */
             padding: 24px 24px 24px 50px;
             position: relative;
             overflow: hidden;
-            margin-top: 20px
+            margin-top: 20px;
+            width: 40%;            
         }
 
         .track-line {
@@ -1777,19 +1858,26 @@
         </div>
     </main>
 
-    <script>
-        const API_BASE_URL = 'https://consolidate.onrender.com/api/orders/track/item'; // Change this to your actual API URL
-        let currentShipmentData = null;
-        const statusSteps = [
-            { key: 'created', label: 'Created', status: 'Created' },
-            { key: 'ready', label: 'Ready for Loading', status: 'Ready for Loading' },
-            { key: 'loaded', label: 'Loaded', status: 'Loaded' },
-            { key: 'in_transit', label: 'In Transit', status: 'In Transit' },
-            { key: 'arrived', label: 'Arrived', status: 'Arrived' },
-            { key: 'delivered', label: 'Delivered', status: 'Delivered' }
-        ];
+<script>
+// ──────────────────────────────────────────────
+// Configuration & Helpers
+// ──────────────────────────────────────────────
 
-        function showToast(message, type = 'info') {
+const API_BASE_URL = 'https://consolidate.onrender.com/api/orders/track/item';
+
+const RGS_PHASES = [
+    { label: "Order Created", tip: "Your order has been created and is being processed.", msg: "Your order has been created successfully." },
+    { label: "Ready for Loading", tip: "Your shipment is being prepared at origin facility.", msg: "Your order is being prepared for loading." },
+    { label: "Loaded Into Container", tip: "Your cargo is loaded and sealed in container.", msg: "Your container is now ready to depart from origin." },
+    { label: "Shipment Processing", tip: "Shipment documentation is under verification.", msg: "Documentation is being processed for departure." },
+    { label: "Shipment In Transit", tip: "Your shipment is now en route to destination.", msg: "Your shipment is reaching to you soon!" },
+    { label: "Under Processing", tip: "Customs and clearance being arranged at destination.", msg: "Your shipment has reached destination and is under customs processing." },
+    { label: "Arrived at Sort Facility", tip: "Shipment arrived at destination port facility.", msg: "Shipment is at destination port facility and being sorted." },
+    { label: "Ready for Delivery", tip: "Cargo ready for dispatch.", msg: "Your cargo is ready for dispatch to your location." },
+    { label: "Shipment Delivered", tip: "Shipment successfully delivered.", msg: "Your shipment has been successfully delivered. Thank you for choosing RGSL." }
+  ];
+
+    function showToast(message, type = 'info') {
             // Remove existing toasts
             const existingToasts = document.querySelectorAll('.toast');
             existingToasts.forEach(toast => toast.remove());
@@ -1874,8 +1962,7 @@
                 }
             }, 1000);
         });
-
-        async function trackShipment() {
+       async function trackShipment() {
     const refInput = document.getElementById('refInput').value.trim();
     const errorDiv = document.getElementById('errorMessage');
     const btn = document.getElementById('searchBtn');
@@ -1969,57 +2056,166 @@
                 });
             });
             document.getElementById('wgt').textContent = totalWeight > 0 ? `${totalWeight} kg` : '—';
+            buildVerticalTimeline(data)
         }
 
-        // Build timeline visualization
-        function buildTimeline(data) {
-            let currentStatus = 'Created';
-            let progressPercent = 0;
-            let stepsHtml = '';
-            const container = document.getElementById('steps-h');
-            const timelineContainer = document.getElementById('timelineContainer');
-            const progress = document.getElementById('progress');
-            const statusMap = { 'Created': 0, 'Ready for Loading': 1, 'Loaded': 2, 'In Transit': 3, 'Arrived': 4, 'Delivered': 5 };
-            const currentStepIndex = statusMap[currentStatus] || 0;
-            const totalSteps = statusSteps.length;
-            const stepProgress = ((currentStepIndex + 1) / totalSteps) * 100;
-            if (data.receivers && data.receivers.length > 0) {
-                const receiver = data.receivers[0];
-                currentStatus = receiver.current_status || receiver.status || 'Created';
-                let totalProgress = 0;
-                let itemCount = 0;
-                receiver.items.forEach(item => {
-                    totalProgress += item.progress_percent || 0;
-                    itemCount++;
-                });
-                progressPercent = itemCount > 0 ? totalProgress / itemCount : 0;
-            }
-            statusSteps.forEach((step, index) => {
-                let stepClass = '';
-                if (index < currentStepIndex) {
-                    stepClass = 'done';
-                } else if (index === currentStepIndex) {
-                    stepClass = 'active';
-                }
-                stepsHtml += `<div class="step ${stepClass}" data-status="${step.key}"><div class="node"></div><label>${step.label}</label></div>`;
-            });
-            container.innerHTML = stepsHtml;
+// Build horizontal timeline visualization using the full RGS_PHASES
+// Build horizontal timeline visualization using full RGS_PHASES with tips
+function buildTimeline(data) {
+    const container = document.getElementById('steps-h');
+    const timelineContainer = document.getElementById('timelineContainer');
+    const progress = document.getElementById('progress');
+    const statusMsg = document.getElementById('statusMsg');
 
-            // Set progress bar width
-            setTimeout(() => {
-                progress.style.width = `${stepProgress}%`;
-                const ship = document.getElementById('ship');
-                if (ship) {
-                    ship.style.left = `${stepProgress}%`;
-                    ship.style.transform = `translateX(-50%)`;
-                }
-            }, 100);
-            timelineContainer.style.display = 'block';
-            const statusMsg = document.getElementById('statusMsg');
-            statusMsg.textContent = `Current Status: ${currentStatus} | Progress: ${Math.round(progressPercent)}%`;
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    // Determine current status
+    let currentStatus = 'Order Created';
+    let currentPhase = null;
+
+    if (data?.receivers?.length > 0) {
+        const receiver = data.receivers[0];
+        currentStatus = receiver.current_status?.trim() 
+                     || receiver.status?.trim() 
+                     || data.status?.trim() 
+                     || 'Order Created';
+    }
+
+    // Find the matching phase object
+    currentPhase = RGS_PHASES.find(phase => phase.label === currentStatus) 
+                || RGS_PHASES[0];  // fallback to first phase
+
+    const activeIndex = RGS_PHASES.findIndex(phase => phase.label === currentStatus);
+    const realIndex = activeIndex === -1 ? 0 : activeIndex;
+
+    // Build steps
+    let stepsHtml = '';
+    RGS_PHASES.forEach((phase, index) => {
+        const stepClass = (index < realIndex) ? 'done' : (index === realIndex ? 'active' : '');
+        stepsHtml += `
+            <div class="step ${stepClass}" data-status="${phase.label}">
+                <div class="node" title="${phase.tip}"></div>
+                <label>${phase.label}</label>
+            </div>
+        `;
+    });
+    container.innerHTML = stepsHtml;
+
+    // Progress bar
+    const totalPhases = RGS_PHASES.length;
+    const stepProgress = totalPhases > 1 
+        ? ((realIndex + 1) / totalPhases) * 100 
+        : 0;
+
+    setTimeout(() => {
+        if (progress) progress.style.width = `${stepProgress}%`;
+        const ship = document.getElementById('ship');
+        if (ship) {
+            ship.style.left = `${stepProgress}%`;
+            ship.style.transform = 'translateX(-50%)';
+        }
+    }, 100);
+
+    if (timelineContainer) timelineContainer.style.display = 'block';
+
+    // Show current status + tip (instead of progress %)
+    if (statusMsg) {
+        const tipText = currentPhase.tip || "Tracking your shipment...";
+        statusMsg.innerHTML = `
+            <strong>Current Status:</strong> ${currentStatus}<br>
+            <span style="color: #666; font-size: 0.95em;">${tipText}</span>
+        `;
+    }
+}
+
+function buildVerticalTimeline(receiver) {
+    const panel = document.getElementById('timelinePanel');
+    if (!panel) return;
+
+    panel.innerHTML = ''; // clear previous content
+
+    // Get current status with fallback
+    let currentStatus = receiver.current_status?.trim() 
+                     || receiver.status?.trim() 
+                     || "Order Created";
+
+    // Find current position in phases
+    const activeIndex = RGS_PHASES.findIndex(phase => phase.label === currentStatus);
+    const realActiveIndex = activeIndex === -1 ? 0 : activeIndex;
+
+    // ──────────────────────────────────────────────
+    // Determine last updated time
+    // ──────────────────────────────────────────────
+    let lastUpdatedTime = new Date().toISOString(); // fallback to now
+    const latestHistory = receiver.status_history?.[receiver.status_history.length - 1];
+
+    if (latestHistory?.time) {
+        lastUpdatedTime = latestHistory.time;
+    }
+
+    const lastUpdatedFormatted = rgsFmtTime(lastUpdatedTime);
+
+    // ──────────────────────────────────────────────
+    // Show only phases up to current status
+    // ──────────────────────────────────────────────
+    const phasesToShow = RGS_PHASES.slice(0, realActiveIndex + 1);
+
+    // Create track line (height based on visible phases)
+    const trackLine = document.createElement('div');
+    trackLine.className = 'track-line';
+    trackLine.style.height = `${phasesToShow.length * 75}px`;
+    panel.appendChild(trackLine);
+
+    // Render each phase (up to current)
+    phasesToShow.forEach((phase, index) => {
+        const isActive = index === realActiveIndex;
+        const isCompleted = index < realActiveIndex;
+
+        let itemClass = isActive ? 'active' : (isCompleted ? 'completed' : 'pending');
+
+        const item = document.createElement('div');
+        item.className = `timeline-item ${itemClass}`;
+
+        // Show time only for the current/active phase
+        let timeDisplay = '';
+        if (isActive) {
+            timeDisplay = `<div class="time">Updated: ${lastUpdatedFormatted}</div>`;
         }
 
-        // Build detailed panel
+        item.innerHTML = `
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="status">${phase.label}</div>
+                ${timeDisplay}
+            </div>
+        `;
+
+        panel.appendChild(item);
+    });
+
+    // Optional: Show Expected Arrival only if current status is not final
+    const isFinal = ["Ready for Delivery", "Shipment Delivered"].includes(currentStatus);
+    if (!isFinal && receiver.eta) {
+        const etaBox = document.createElement('div');
+        etaBox.className = 'timeline-item future';
+        etaBox.innerHTML = `
+            <div class="timeline-dot future"></div>
+            <div class="timeline-content">
+                <div class="status">Expected Arrival</div>
+                <div class="time">${new Date(receiver.eta).toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                })}</div>
+            </div>
+        `;
+        panel.appendChild(etaBox);
+    }
+
+    panel.style.display = 'block';
+}
+
+// Build detailed panel
         function buildDetailsPanel(data) {
             const panel = document.getElementById('timelinePanel');
             let html = '<div class="track-line" style="height: 100%;"></div>';
@@ -2045,7 +2241,7 @@
                 }
             });
             panel.innerHTML = html;
-            panel.style.display = 'block';
+            panel.style.display = '';
         }
 
         function simulateStatusUpdate(orderId) {
@@ -2175,6 +2371,5 @@
             }
         });
     </script>
-</body>
-
+    </body>
 </html>
