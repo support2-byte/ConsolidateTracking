@@ -11,14 +11,13 @@
     <link rel="icon" type="image/x-icon" href="favicon.png" />
     <meta
       name="api-base-url"
-      content="https://ordertracking.royalgulfshipping.com"
+      content="https://trackorder.royalgulfshipping.com"
     />
-    <meta name="public-key" content="FRONTEND_KEY_ABC123" />
     <meta
       name="recaptcha-site-key"
-      content="6Lf3iwUsAAAAAE7483DEwqV2gbxBZIqMi9EP06Kd"
+      content="6LfsWmstAAAAAGY8xEVZH0XwQ087Un-NU5BIE8dX"
     />
-    <script src="https://www.google.com/recaptcha/enterprise.js?render=6Lf3iwUsAAAAAE7483DEwqV2gbxBZIqMi9EP06Kd"></script>
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LfsWmstAAAAAGY8xEVZH0XwQ087Un-NU5BIE8dX"></script>
     <style>
       :root {
         --rg-orange: #f97316;
@@ -2168,7 +2167,7 @@
           "FRONTEND_KEY_ABC123",
         SITE_KEY:
           document.querySelector('meta[name="recaptcha-site-key"]')?.content ||
-          "6Lf3iwUsAAAAAE7483DEwqV2gbxBZIqMi9EP06Kd",
+          "6LfsWmstAAAAAGY8xEVZH0XwQ087Un-NU5BIE8dX",
         // VERIFY_RECAPTCHA_ENDPOINT:
         //   "http://localhost:5000/api/internal/verify-recaptcha",
         VERIFY_RECAPTCHA_ENDPOINT:
@@ -2254,7 +2253,7 @@
 
         try {
           const url = `https://consolidate.onrender.com/api/orders/track/item/${encodeURIComponent(refInput)}`;
-          //   const url = `http://localhost:5000/api/orders/track/item/${encodeURIComponent(refInput)}`;
+          // const url = `http://localhost:5000/api/orders/track/item/${encodeURIComponent(refInput)}`;
 
           const response = await fetch(url, {
             method: "GET",
