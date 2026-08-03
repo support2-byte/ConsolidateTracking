@@ -8,10 +8,12 @@ const CONFIG = {
   TRACKING_API_BASE:
     document.querySelector('meta[name="tracking-api-url"]')?.content ||
     "https://consolidate.onrender.com",
+  // "http://localhost:5000",
 
   SITE_KEY:
     document.querySelector('meta[name="recaptcha-site-key"]')?.content ||
     "6LfsWmstAAAAAGY8xEVZH0XwQ087Un-NU5BIE8dX",
+  // "6Lf3iwUsAAAAAE7483DEwqV2gbxBZIqMi9EP06Kd",
 
   VERIFY_RECAPTCHA_ENDPOINT: null,
   TRACK_ITEM_ENDPOINT: null,
