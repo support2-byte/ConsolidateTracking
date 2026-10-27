@@ -659,7 +659,6 @@ body {
 .timeline-h {
   position: relative;
   margin: 28px 0 6px;
-  display: none;
 }
 
 .timeline-h .line {
@@ -1645,15 +1644,10 @@ body {
   padding-top: 70px;
 }
 
-#content {
-  display: none;
-}
-
 .error-message {
   background: #fee2e2;
   color: #991b1b;
   padding: 15px;
   border-radius: 8px;
   margin: 20px 0;
-  display: none;
 }
