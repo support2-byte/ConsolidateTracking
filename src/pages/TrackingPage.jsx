@@ -6,6 +6,7 @@ import HorizontalTimeline from "../components/HorizontalTimeline";
 import StatusHistory from "../components/StatusHistory";
 import NotifyModal from "../components/NotifyModal";
 import { OrderSummary, OrderReceivers } from "../components/OrderTracking";
+import TerminalNotice from "../components/TerminalNotice";
 
 function errorMessageFor(err) {
   const status = err.response?.status;
@@ -158,22 +159,28 @@ export default function TrackingPage({ verified }) {
               </span>
             </div>
 
-            <HorizontalTimeline
-              phases={s.phases}
-              activeIndex={s.activeIndex}
-              currentStatus={s.currentStatus}
-            />
+            {s.terminal ? (
+              <TerminalNotice kind={s.terminal} />
+            ) : (
+              <>
+                <HorizontalTimeline
+                  phases={s.phases}
+                  activeIndex={s.activeIndex}
+                  currentStatus={s.currentStatus}
+                />
 
-            <div className="actions" id="actions">
-              <button
-                className="btn"
-                type="button"
-                title="Get email alerts when status changes"
-                onClick={() => setNotifyOpen(true)}
-              >
-                Notify Me
-              </button>
-            </div>
+                <div className="actions" id="actions">
+                  <button
+                    className="btn"
+                    type="button"
+                    title="Get email alerts when status changes"
+                    onClick={() => setNotifyOpen(true)}
+                  >
+                    Notify Me
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -188,7 +195,7 @@ export default function TrackingPage({ verified }) {
       </section>
 
       {isOrder && <OrderReceivers s={s} />}
-      {isItem && <StatusHistory receiver={s.receiver} />}
+      {isItem && !s.terminal && <StatusHistory receiver={s.receiver} />}
 
       {s && (
         <NotifyModal

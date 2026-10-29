@@ -10,6 +10,13 @@ const STATUS_ALIASES = {
 
 export const canon = (s) => STATUS_ALIASES[normStatus(s)] || normStatus(s);
 
+export const terminalKind = (s) => {
+  const n = normStatus(s);
+  if (n === "cancelled" || n === "canceled") return "cancelled";
+  if (n === "rejected") return "rejected";
+  return null;
+};
+
 export const findPhaseIndex = (phases, status) =>
   phases.findIndex((p) => canon(p.label) === canon(status));
 
@@ -22,10 +29,12 @@ export function getPhases(order) {
     ? order.status_sequence
     : [];
   if (!seq.length) return RGS_PHASES;
-  return seq.map((label) => {
-    const info = phaseInfoFor(label);
-    return { label, tip: info.tip || "", msg: info.msg || "" };
-  });
+  return seq
+    .filter((label) => !terminalKind(label))
+    .map((label) => {
+      const info = phaseInfoFor(label);
+      return { label, tip: info.tip || "", msg: info.msg || "" };
+    });
 }
 
 export function getCurrentStatus(order) {

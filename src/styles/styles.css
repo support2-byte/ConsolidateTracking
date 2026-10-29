@@ -837,6 +837,59 @@ body {
   animation: pulse 1.6s ease-in-out infinite;
 }
 
+.item:not(.last)::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 22px;
+  width: 4px;
+  height: calc(100% + 6px);
+  background: var(--rg-green);
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.ot-chip-red {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ot-terminal {
+  text-align: center;
+  padding: 24px 16px;
+  margin-top: 14px;
+  border-radius: 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  font-family: "Inter", Arial, sans-serif;
+}
+.ot-terminal.rejected {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+.ot-terminal-icon {
+  font-size: 40px;
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+.ot-terminal.rejected .ot-terminal-icon {
+  color: var(--rg-orange);
+}
+.ot-terminal-title {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--rg-dark);
+  margin-bottom: 6px;
+}
+.ot-terminal-text {
+  margin: 4px 0;
+  font-size: 13px;
+  color: var(--rg-subtext);
+}
+.ot-terminal-text strong {
+  color: var(--rg-orange);
+}
+
 .content {
   padding-top: 2px;
   flex: 1;
@@ -1421,6 +1474,10 @@ body {
     gap: 15px;
     flex-direction: column;
     align-items: center;
+  }
+
+  .item::before {
+    display: none;
   }
 
   .status {

@@ -4,14 +4,15 @@ import { fmtTime, fmtDate } from "../utils/format";
 export default function StatusHistory({ receiver }) {
   const history = [...(receiver?.status_history || [])]
     .filter((h) => h.status)
-    .sort((a, b) => new Date(b.time) - new Date(a.time));
+    .sort((a, b) => new Date(a.time) - new Date(b.time));
 
   return (
     <section className="panel" id="timelinePanel">
-      <div className="track-line" style={{ height: "100%" }}></div>
-
       {history.map((h, i) => (
-        <div key={h.tracking_id ?? i} className={`item ${i === 0 ? "active" : "done"}`}>
+        <div
+          key={h.tracking_id ?? i}
+          className={`item ${i === history.length - 1 ? "active last" : "done"}`}
+        >
           <div className="dot"></div>
           <div className="content">
             <div className="status">{h.status}</div>

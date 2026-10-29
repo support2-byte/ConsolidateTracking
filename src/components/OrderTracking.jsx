@@ -2,6 +2,7 @@ import { useState } from "react";
 import config from "../config";
 import { fmtDate, fmtTime } from "../utils/format";
 import HorizontalTimeline from "./HorizontalTimeline";
+import TerminalNotice from "./TerminalNotice";
 
 export function OrderSummary({ s, onNotify }) {
   return (
@@ -112,7 +113,7 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
       <div className={`ot-collapse${open ? " open" : ""}`}>
         <div className="ot-collapse-inner">
           <div className="ot-body">
-            {r.items.length > 0 && (
+            {r.leastItem && (
               <>
                 <p className="ot-sub">
                   Overall progress (based on the least advanced item
@@ -172,15 +173,17 @@ function ItemCard({ it, phases, i }) {
           <div className="ot-item-desc">{it.description || "—"}</div>
         </div>
         <span
-          className={`ot-chip ${it.delivered ? "ot-chip-green" : "ot-chip-orange ot-live"}`}
+          className={`ot-chip ${it.terminal ? "ot-chip-red" : it.delivered ? "ot-chip-green" : "ot-chip-orange ot-live"}`}
         >
           {it.status}
         </span>
       </div>
 
-      <div className="ot-mini">
-        <div className="ot-mini-fill" />
-      </div>
+      {!it.terminal && (
+        <div className="ot-mini">
+          <div className="ot-mini-fill" />
+        </div>
+      )}
 
       <div className="ot-item-meta">
         <span>
@@ -192,56 +195,49 @@ function ItemCard({ it, phases, i }) {
         <span>
           ETA <b>{it.eta ? fmtDate(it.eta) : "—"}</b>
         </span>
-        <span>
-          {it.containers.length
-            ? it.containers.map((c) => c.number).join(", ")
-            : "Container: Not assigned"}
-        </span>
-        {it.consignments.length > 0 && (
-          <span>
-            Consignment:{" "}
-            <b>{it.consignments.map((c) => c.number).join(", ")}</b>
-          </span>
-        )}
       </div>
 
-      <button
-        type="button"
-        className="ot-link"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {open ? "Hide" : "View"} tracking history
-        <i className={`fas fa-chevron-down ot-chev${open ? " open" : ""}`} />
-      </button>
+      {it.terminal ? (
+        <TerminalNotice kind={it.terminal} />
+      ) : (
+        <>
+          <button
+            type="button"
+            className="ot-link"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? "Hide" : "View"} tracking history
+            <i
+              className={`fas fa-chevron-down ot-chev${open ? " open" : ""}`}
+            />
+          </button>
 
-      <div className={`ot-collapse${open ? " open" : ""}`}>
-        <div className="ot-collapse-inner">
-          {it.history.length === 0 ? (
-            <p className="ot-empty">No tracking updates yet.</p>
-          ) : (
-            <ol className="ot-hist">
-              {it.history.map((h, k) => (
-                <li
-                  key={k}
-                  className={k === 0 ? "current" : ""}
-                  style={{ "--i": k }}
-                >
-                  <span className="ot-hist-dot" />
-                  <div>
-                    <div className="ot-hist-status">{h.status}</div>
-                    <div className="ot-hist-time">
-                      {fmtTime(h.time)}
-                      {h.container_number && ` • ${h.container_number}`}
-                      {h.consignment_number && ` • ${h.consignment_number}`}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-      </div>
+          <div className={`ot-collapse${open ? " open" : ""}`}>
+            <div className="ot-collapse-inner">
+              {it.history.length === 0 ? (
+                <p className="ot-empty">No tracking updates yet.</p>
+              ) : (
+                <ol className="ot-hist">
+                  {it.history.map((h, k) => (
+                    <li
+                      key={k}
+                      className={k === it.history.length - 1 ? "current" : ""}
+                      style={{ "--i": k }}
+                    >
+                      <span className="ot-hist-dot" />
+                      <div>
+                        <div className="ot-hist-status">{h.status}</div>
+                        <div className="ot-hist-time">{fmtTime(h.time)}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   getCurrentStatus,
   getActiveIndex,
   findPhaseIndex,
+  terminalKind,
 } from "./status";
 
 export function buildShipmentView(raw) {
@@ -37,6 +38,11 @@ export function buildShipmentView(raw) {
     phases,
     currentStatus,
     activeIndex,
+    terminal:
+      terminalKind(currentStatus) ||
+      terminalKind(order.status) ||
+      (receiver.items || []).map((i) => terminalKind(i.status)).find(Boolean) ||
+      null,
     pol: order.place_of_loading ?? "—",
     pod: order.place_of_delivery ?? "—",
     referenceId: receiver.items?.[0]?.tracking_id || "—",
@@ -53,6 +59,7 @@ export function buildOrderView(raw) {
   if (!order) return null;
 
   const phases = getPhases(order);
+  const orderTerminal = terminalKind(order.status);
   const lastIdx = phases.length - 1;
   const rankOf = (status) => Math.max(findPhaseIndex(phases, status), 0);
 
@@ -65,7 +72,9 @@ export function buildOrderView(raw) {
 
   const receivers = (order.receivers || []).map((r) => {
     const items = (r.shippingDetails || []).map((it) => {
-      const history = (it.status_history || []).filter((h) => h.status);
+      const history = (it.status_history || [])
+        .filter((h) => h.status)
+        .sort((a, b) => new Date(a.time) - new Date(b.time));
       const containers = (it.containerDetails || [])
         .filter(
           (c) =>
@@ -77,7 +86,9 @@ export function buildOrderView(raw) {
           boxes: Number(c.assign_total_box) || 0,
         }));
       const idx = rankOf(it.status);
-      const t = new Date(it.lastUpdated || history[0]?.time || 0).getTime();
+      const t = new Date(
+        it.lastUpdated || history[history.length - 1]?.time || 0,
+      ).getTime();
       if (t > latestTime) latestTime = t;
 
       const eta = it.eta || null;
@@ -106,6 +117,7 @@ export function buildOrderView(raw) {
         weight: Number(it.weight) || 0,
         status: it.status || phases[0].label,
         activeIndex: idx,
+        terminal: orderTerminal || terminalKind(it.status),
         delivered,
         eta,
         containers,
@@ -115,7 +127,8 @@ export function buildOrderView(raw) {
     });
 
     const least = items.reduce(
-      (min, it) => (!min || it.activeIndex < min.activeIndex ? it : min),
+      (min, it) =>
+        it.terminal ? min : !min || it.activeIndex < min.activeIndex ? it : min,
       null,
     );
     const activeIndex = least ? least.activeIndex : 0;
