@@ -21,7 +21,7 @@ export const RGS_PHASES = [
   },
   {
     label: "Shipment In Transit",
-    tip: "Your shipment is now en route to destination.",
+    tip: "Your shipment is now in route to destination.",
     msg: "Your shipment is reaching to you soon!",
   },
   {
