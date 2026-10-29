@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
-import { trackItem } from "../api/client";
+import { trackShipment } from "../api/client";
 import { getTimezoneLabel } from "../utils/format";
-import { buildShipmentView } from "../utils/shipment";
+import { buildShipmentView, buildOrderView } from "../utils/shipment";
 import HorizontalTimeline from "../components/HorizontalTimeline";
 import StatusHistory from "../components/StatusHistory";
 import NotifyModal from "../components/NotifyModal";
+import { OrderSummary, OrderReceivers } from "../components/OrderTracking";
 
 function errorMessageFor(err) {
   const status = err.response?.status;
-  if (status === 404) return "No shipment found with this reference ID";
+  if (status === 404)
+    return "Tracking Not Found — please check your tracking ID";
   if (status >= 500) return "Server error — please try again later";
   if (err.response) {
     return err.response.data?.message || `Request failed: ${status}`;
   }
-  if (err.code === "ECONNABORTED") return "The request timed out. Please try again.";
+  if (err.code === "ECONNABORTED")
+    return "The request timed out. Please try again.";
   return "Network error — check your internet or try again later";
 }
 
@@ -29,7 +32,7 @@ export default function TrackingPage({ verified }) {
   const track = useCallback(async (value) => {
     const ref = value.trim();
     if (!ref) {
-      setError("Please enter a reference ID");
+      setError("Please enter a tracking ID");
       return;
     }
 
@@ -38,15 +41,11 @@ export default function TrackingPage({ verified }) {
     setLoading(true);
 
     try {
-      const { data } = await trackItem(ref);
-      if (!data?.success) {
-        throw Object.assign(new Error(), {
-          response: { status: 404, data },
-        });
-      }
-      const view = buildShipmentView(data.data);
+      const { kind, data } = await trackShipment(ref);
+      const view =
+        kind === "order" ? buildOrderView(data) : buildShipmentView(data);
       if (!view) throw new Error("Empty response");
-      setShipment({ ...view, inputRef: ref });
+      setShipment({ ...view, kind, inputRef: ref });
     } catch (err) {
       console.error("Track shipment error:", err);
       setError(errorMessageFor(err));
@@ -55,13 +54,10 @@ export default function TrackingPage({ verified }) {
     }
   }, []);
 
-  // Auto-track when the page is opened with ?ref=... (after reCAPTCHA passes)
   useEffect(() => {
     if (verified && refInput) track(refInput);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [verified]);
 
-  // Error banner disappears after 5s, like the original page
   useEffect(() => {
     if (!error) return;
     const t = setTimeout(() => setError(""), 5000);
@@ -75,6 +71,9 @@ export default function TrackingPage({ verified }) {
 
   const s = shipment;
 
+  const isOrder = s?.kind === "order";
+  const isItem = s?.kind === "item";
+
   return (
     <main className="container1">
       <section className="summary">
@@ -86,17 +85,37 @@ export default function TrackingPage({ verified }) {
             type="text"
             value={refInput}
             onChange={(e) => setRefInput(e.target.value)}
-            placeholder="Enter Reference ID (e.g. ORDER-ITEM-REF-1-1-1096xxxxx)"
+            placeholder="Enter Tracking ID (e.g. RGSL-ORD-XXXXXX)"
           />{" "}
-          <button id="searchBtn" type="submit" className="search-btn" disabled={loading}>
-            {loading ? "Loading..." : "Track"}
+          <button
+            id="searchBtn"
+            type="submit"
+            className="search-btn"
+            disabled={loading}
+          >
+            {loading ? "Searching..." : "Track"}
           </button>
         </form>
 
-        {error && <div className="error-message" style={{ display: "block" }}>{error}</div>}
+        {loading && (
+          <div className="ot-searching">
+            <span className="ot-ship-loader">
+              <i className="fas fa-ship"></i>
+            </span>
+            Searching shipment...
+          </div>
+        )}
 
-        {s && (
-          <>
+        {error && (
+          <div className="error-message" style={{ display: "block" }}>
+            {error}
+          </div>
+        )}
+
+        {isOrder && <OrderSummary s={s} onNotify={() => setNotifyOpen(true)} />}
+
+        {isItem && (
+          <div className="ot-fade">
             <div className="route" id="route">
               <span id="pol">POL: {s.pol}</span>
               <span className="arrow">➜</span>
@@ -110,7 +129,9 @@ export default function TrackingPage({ verified }) {
             <div className="order-info" id="orderInfo">
               <div className="info-block ref-block">
                 <div className="info-label">REF ID</div>
-                <div className="info-value" id="refId">{s.referenceId}</div>
+                <div className="info-value" id="refId">
+                  {s.referenceId}
+                </div>
               </div>
               <div className="info-block">
                 <div className="info-label">Order ID</div>
@@ -132,8 +153,8 @@ export default function TrackingPage({ verified }) {
 
             <div className="timezone-note-wrap">
               <span className="timezone-note">
-                <i className="fas fa-clock"></i> All dates and times are shown in
-                your local timezone: {getTimezoneLabel()}
+                <i className="fas fa-clock"></i> All dates and times are shown
+                in your local timezone: {getTimezoneLabel()}
               </span>
             </div>
 
@@ -153,11 +174,21 @@ export default function TrackingPage({ verified }) {
                 Notify Me
               </button>
             </div>
-          </>
+          </div>
+        )}
+
+        {isOrder && (
+          <div className="timezone-note-wrap">
+            <span className="timezone-note">
+              <i className="fas fa-clock"></i> All dates and times are shown in
+              your local timezone: {getTimezoneLabel()}
+            </span>
+          </div>
         )}
       </section>
 
-      {s && <StatusHistory receiver={s.receiver} />}
+      {isOrder && <OrderReceivers s={s} />}
+      {isItem && <StatusHistory receiver={s.receiver} />}
 
       {s && (
         <NotifyModal
