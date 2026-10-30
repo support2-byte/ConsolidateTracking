@@ -1,58 +1,120 @@
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import config from "../config";
 import { fmtDate, fmtTime } from "../utils/format";
 import HorizontalTimeline from "./HorizontalTimeline";
 import TerminalNotice from "./TerminalNotice";
 
+const ease = [0.22, 1, 0.36, 1];
+
+export function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+  return (
+    <button
+      type="button"
+      className="copy-btn"
+      onClick={copy}
+      aria-label="Copy tracking ID"
+    >
+      <i className={`fas ${copied ? "fa-check" : "fa-copy"}`} />{" "}
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
+export function Route({ pol, pod }) {
+  if (!pol && !pod) return null;
+  return (
+    <div className="route">
+      <div className="route-end">
+        <small>Loading port</small>
+        <b>{pol || "—"}</b>
+      </div>
+      <motion.div
+        className="route-line"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 0.9, ease, delay: 0.15 }}
+      >
+        <i className="fas fa-ship" />
+      </motion.div>
+      <div className="route-end right">
+        <small>Delivery port</small>
+        <b>{pod || "—"}</b>
+      </div>
+    </div>
+  );
+}
+
+export function Facts({ items }) {
+  return (
+    <div className="facts">
+      {items
+        .filter(
+          (f) => f.value !== undefined && f.value !== null && f.value !== "",
+        )
+        .map((f, i) => (
+          <motion.div
+            key={f.label}
+            className="fact"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + i * 0.06 }}
+          >
+            <div className="info-label">{f.label}</div>
+            <div className="info-value">{f.value}</div>
+          </motion.div>
+        ))}
+    </div>
+  );
+}
+
 export function OrderSummary({ s, onNotify }) {
   return (
-    <div className="ot-fade">
-      <div className="ot-banner">
-        <span className="ot-banner-label">Tracking ID</span>
-        <span className="ot-banner-id">{s.trackingId}</span>
+    <div>
+      <div className="summary-head">
+        <div className="ot-banner">
+          <span className="ot-banner-label">Tracking ID</span>
+          <span className="ot-banner-id">
+            {s.trackingId} <CopyButton text={s.trackingId} />
+          </span>
+        </div>
+        <div className="last-updated">Last updated {s.lastUpdated}</div>
       </div>
 
-      {(s.pol || s.pod) && (
-        <div className="route">
-          <span>POL: {s.pol || "—"}</span>
-          <span className="arrow">➜</span>
-          <span>POD: {s.pod || "—"}</span>
-        </div>
-      )}
+      <Route pol={s.pol} pod={s.pod} />
 
-      <div className="last-updated">Last updated: {s.lastUpdated}</div>
-
-      <div className="order-info">
-        <div className="info-block">
-          <div className="info-label">Form No</div>
-          <div className="info-value">{s.formNo}</div>
-        </div>
-        <div className="info-block">
-          <div className="info-label">Sender</div>
-          <div className="info-value">{s.senderName}</div>
-        </div>
-        <div className="info-block">
-          <div className="info-label">Created</div>
-          <div className="info-value">{s.createdText}</div>
-        </div>
-        {s.mode && (
-          <div className="info-block">
-            <div className="info-label">Mode</div>
-            <div className="info-value">{s.mode}</div>
-          </div>
-        )}
-        <div className="info-block">
-          <div className="info-label">Delivered</div>
-          <div className="info-value">
-            {s.deliveredCount}/{s.itemCount} items
-          </div>
-        </div>
-      </div>
+      <Facts
+        items={[
+          { label: "Form no", value: s.formNo },
+          { label: "Sender", value: s.senderName },
+          { label: "Created", value: s.createdText },
+          { label: "Mode", value: s.mode },
+          {
+            label: "Delivered",
+            value: `${s.deliveredCount} of ${s.itemCount} items`,
+          },
+        ]}
+      />
 
       <div className="actions">
-        <button className="btn" type="button" onClick={onNotify}>
-          Notify Me
-        </button>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          className="btn"
+          type="button"
+          onClick={onNotify}
+        >
+          <i className="far fa-bell" /> Notify me
+        </motion.button>
       </div>
     </div>
   );
@@ -62,13 +124,12 @@ export function OrderReceivers({ s }) {
   return (
     <section className="ot-receivers">
       <h3 className="ot-heading">
-        Delivery Destinations ({s.receivers.length})
+        Delivery destinations ({s.receivers.length})
       </h3>
       {s.receivers.map((r, i) => (
         <ReceiverCard
           key={r.id ?? i}
           r={r}
-          index={i}
           phases={s.phases}
           defaultOpen={i === 0}
         />
@@ -77,21 +138,52 @@ export function OrderReceivers({ s }) {
   );
 }
 
-function ReceiverCard({ r, index, phases, defaultOpen }) {
+function Ring({ done, total }) {
+  return (
+    <svg className="ring" viewBox="0 0 48 48" aria-hidden="true">
+      <circle className="bg" cx="24" cy="24" r="19" />
+      <motion.circle
+        className="fg"
+        cx="24"
+        cy="24"
+        r="19"
+        initial={{ pathLength: 0 }}
+        whileInView={{ pathLength: total ? done / total : 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1, ease, delay: 0.2 }}
+      />
+    </svg>
+  );
+}
+
+const reveal = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: "auto", opacity: 1 },
+  exit: { height: 0, opacity: 0 },
+  transition: { duration: 0.35, ease },
+  style: { overflow: "hidden" },
+};
+
+function ReceiverCard({ r, phases, defaultOpen }) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <article className="ot-card" style={{ "--i": index }}>
+    <motion.article
+      className="ot-card"
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, ease }}
+    >
       <button
         type="button"
         className="ot-card-head"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
+        <Ring done={r.deliveredCount} total={r.items.length} />
         <div className="ot-card-title">
-          <h4>
-            Receiver {index + 1}: {r.name}
-          </h4>
+          <h4>{r.name}</h4>
           {r.address && <p>{r.address}</p>}
           <div className="ot-chips">
             <span className="ot-chip ot-chip-blue">
@@ -102,7 +194,7 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
             </span>
             {r.leastItem && (
               <span className="ot-chip ot-chip-orange ot-live">
-                Current: {r.currentStatus}
+                Now: {r.currentStatus}
               </span>
             )}
           </div>
@@ -110,51 +202,53 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
         <i className={`fas fa-chevron-down ot-chev${open ? " open" : ""}`} />
       </button>
 
-      <div className={`ot-collapse${open ? " open" : ""}`}>
-        <div className="ot-collapse-inner">
-          <div className="ot-body">
-            {r.leastItem && (
-              <>
-                <p className="ot-sub">
-                  Overall progress (based on the least advanced item
-                  {r.leastItem ? `: ${r.leastItem.trackingId}` : ""})
-                </p>
-                <HorizontalTimeline
-                  phases={phases}
-                  activeIndex={r.activeIndex}
-                  currentStatus={r.currentStatus}
-                />
-              </>
-            )}
-
-            <div className="ot-items">
-              {r.items.length === 0 && (
-                <p className="ot-empty">No items found for this receiver.</p>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div {...reveal}>
+            <div className="ot-body">
+              {r.leastItem && (
+                <>
+                  <p className="ot-sub">
+                    Overall progress, based on the least advanced item (
+                    {r.leastItem.trackingId})
+                  </p>
+                  <HorizontalTimeline
+                    phases={phases}
+                    activeIndex={r.activeIndex}
+                    currentStatus={r.currentStatus}
+                  />
+                </>
               )}
-              {r.items.map((it, k) => (
-                <ItemCard key={it.id ?? k} it={it} phases={phases} i={k} />
-              ))}
-            </div>
 
-            {r.dropOffs.length > 0 && (
-              <div className="ot-dropoff">
-                <strong>Pickup / Drop-off Schedule</strong>
-                {r.dropOffs.map((d, k) => (
-                  <div key={k}>
-                    {d.method}
-                    {d.date ? ` • ${fmtDate(d.date)}` : ""}
-                  </div>
+              <div className="ot-items">
+                {r.items.length === 0 && (
+                  <p className="ot-empty">No items found for this receiver.</p>
+                )}
+                {r.items.map((it, k) => (
+                  <ItemCard key={it.id ?? k} it={it} phases={phases} i={k} />
                 ))}
-                <div className="ot-dropoff-note">
-                  To schedule, call{" "}
-                  <strong>{config.SUPPORT_PHONE_DISPLAY}</strong>
-                </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </article>
+
+              {r.dropOffs.length > 0 && (
+                <div className="ot-dropoff">
+                  <strong>Pickup / drop-off schedule</strong>
+                  {r.dropOffs.map((d, k) => (
+                    <div key={k}>
+                      {d.method}
+                      {d.date ? ` • ${fmtDate(d.date)}` : ""}
+                    </div>
+                  ))}
+                  <div className="ot-dropoff-note">
+                    To schedule, call{" "}
+                    <strong>{config.SUPPORT_PHONE_DISPLAY}</strong>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.article>
   );
 }
 
@@ -163,9 +257,11 @@ function ItemCard({ it, phases, i }) {
   const pct = Math.round(((it.activeIndex + 1) / phases.length) * 100);
 
   return (
-    <div
+    <motion.div
       className={`ot-item${it.delivered ? " delivered" : ""}`}
-      style={{ "--i": i, "--pct": `${pct}%` }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease, delay: i * 0.07 }}
     >
       <div className="ot-item-top">
         <div>
@@ -181,7 +277,12 @@ function ItemCard({ it, phases, i }) {
 
       {!it.terminal && (
         <div className="ot-mini">
-          <div className="ot-mini-fill" />
+          <motion.div
+            className="ot-mini-fill"
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 1, ease, delay: 0.2 + i * 0.07 }}
+          />
         </div>
       )}
 
@@ -213,31 +314,35 @@ function ItemCard({ it, phases, i }) {
             />
           </button>
 
-          <div className={`ot-collapse${open ? " open" : ""}`}>
-            <div className="ot-collapse-inner">
-              {it.history.length === 0 ? (
-                <p className="ot-empty">No tracking updates yet.</p>
-              ) : (
-                <ol className="ot-hist">
-                  {it.history.map((h, k) => (
-                    <li
-                      key={k}
-                      className={k === it.history.length - 1 ? "current" : ""}
-                      style={{ "--i": k }}
-                    >
-                      <span className="ot-hist-dot" />
-                      <div>
-                        <div className="ot-hist-status">{h.status}</div>
-                        <div className="ot-hist-time">{fmtTime(h.time)}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </div>
-          </div>
+          <AnimatePresence initial={false}>
+            {open && (
+              <motion.div {...reveal}>
+                {it.history.length === 0 ? (
+                  <p className="ot-empty">No tracking updates yet.</p>
+                ) : (
+                  <ol className="ot-hist">
+                    {it.history.map((h, k) => (
+                      <motion.li
+                        key={k}
+                        className={k === it.history.length - 1 ? "current" : ""}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: k * 0.05 }}
+                      >
+                        <span className="ot-hist-dot" />
+                        <div>
+                          <div className="ot-hist-status">{h.status}</div>
+                          <div className="ot-hist-time">{fmtTime(h.time)}</div>
+                        </div>
+                      </motion.li>
+                    ))}
+                  </ol>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

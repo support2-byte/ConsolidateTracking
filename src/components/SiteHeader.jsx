@@ -1,8 +1,29 @@
-import { useState } from "react";
-import { MAIN_NAV, SERVICE_NAV, WHITE_LOGO_URL, QUOTE_URL } from "../constants/links";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  MAIN_NAV,
+  SERVICE_NAV,
+  WHITE_LOGO_URL,
+  QUOTE_URL,
+} from "../constants/links";
 
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   return (
     <>
@@ -15,51 +36,93 @@ export default function SiteHeader() {
             <i className="fas fa-envelope"></i> info@royalgulfshipping.com
           </a>
           <a href="#address">
-            <i className="fas fa-map-marker-alt"></i> Ras Al Khor Industrial Area, Dubai
+            <i className="fas fa-map-marker-alt"></i> Ras Al Khor Industrial
+            Area, Dubai
           </a>
         </div>
       </div>
 
-      <header className="main-header">
-        <div className="logo">
+      <motion.header
+        className={`main-header${scrolled ? " scrolled" : ""}`}
+        initial={{ y: -24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <a className="logo" href="/" aria-label="Royal Gulf Shipping home">
           <img src="/logo.jpeg" alt="Royal Gulf Shipping Logo" />
-        </div>
-        <nav className="main-nav">
-          <div>
-            {MAIN_NAV.map((l) => (
-              <a key={l.label} href={l.href}>{l.label}</a>
-            ))}
-          </div>
-        </nav>
-        <input
-          type="checkbox"
-          id="mobile-menu-toggle"
-          className="mobile-menu-toggle"
-          checked={menuOpen}
-          onChange={(e) => setMenuOpen(e.target.checked)}
-        />
-        <label htmlFor="mobile-menu-toggle">
-          <span></span>
-          <span></span>
-          <span></span>
-        </label>
-      </header>
-
-      {/* Mobile menu */}
-      <nav className={`mobile-nav${menuOpen ? " active" : ""}`} id="mobileNav">
-        <div className="mobile-logo">
-          <img src={WHITE_LOGO_URL} alt="Royal Gulf Shipping Logo" />
-        </div>
-        <span className="close-btn" onClick={() => setMenuOpen(false)}>&times;</span>
-        <ul>
-          {[...MAIN_NAV, ...SERVICE_NAV].map((l) => (
-            <li key={l.label}><a href={l.href}>{l.label}</a></li>
+        </a>
+        <nav className="main-nav" aria-label="Main">
+          {MAIN_NAV.map((l) => (
+            <a key={l.label} href={l.href}>
+              {l.label}
+            </a>
           ))}
-        </ul>
-      </nav>
+          <a className="nav-cta" href={QUOTE_URL}>
+            Get a quote
+          </a>
+        </nav>
+        <button
+          type="button"
+          className={`burger${menuOpen ? " open" : ""}`}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </motion.header>
 
-      {/* Desktop sub menu */}
-      <nav className="sub-menu-2">
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.div
+              className="drawer-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMenuOpen(false)}
+            />
+            <motion.nav
+              className="mobile-nav"
+              aria-label="Mobile"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 36 }}
+            >
+              <div className="mobile-logo">
+                <img src={WHITE_LOGO_URL} alt="Royal Gulf Shipping Logo" />
+              </div>
+              <button
+                type="button"
+                className="close-btn"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+              >
+                &times;
+              </button>
+              <ul>
+                {[...MAIN_NAV, ...SERVICE_NAV].map((l, i) => (
+                  <motion.li
+                    key={l.label}
+                    initial={{ opacity: 0, x: 24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.08 + i * 0.03 }}
+                  >
+                    <a href={l.href} onClick={() => setMenuOpen(false)}>
+                      {l.label}
+                    </a>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.nav>
+          </>
+        )}
+      </AnimatePresence>
+
+      <nav className="sub-menu-2" aria-label="Services">
         <ul className="sub-menu">
           {SERVICE_NAV.map((l) => (
             <li key={l.label} className="nav-items">
@@ -68,19 +131,6 @@ export default function SiteHeader() {
           ))}
         </ul>
       </nav>
-
-      <div
-        className="page-title-area"
-        style={{ backgroundImage: 'url("/banner.png")' }}
-      >
-        <div className="container">
-          <div className="page-title-content">
-            <a id="getQuoteBtn" href={QUOTE_URL} className="search-btn">
-              Get a Quote
-            </a>
-          </div>
-        </div>
-      </div>
     </>
   );
 }
