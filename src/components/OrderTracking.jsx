@@ -135,22 +135,6 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
                 <ItemCard key={it.id ?? k} it={it} phases={phases} i={k} />
               ))}
             </div>
-
-            {r.dropOffs.length > 0 && (
-              <div className="ot-dropoff">
-                <strong>Pickup / Drop-off Schedule</strong>
-                {r.dropOffs.map((d, k) => (
-                  <div key={k}>
-                    {d.method}
-                    {d.date ? ` • ${fmtDate(d.date)}` : ""}
-                  </div>
-                ))}
-                <div className="ot-dropoff-note">
-                  To schedule, call{" "}
-                  <strong>{config.SUPPORT_PHONE_DISPLAY}</strong>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
