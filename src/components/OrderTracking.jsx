@@ -24,34 +24,24 @@ export function OrderSummary({ s, onNotify }) {
 
       <div className="order-info">
         <div className="info-block">
-          <div className="info-label">Form No</div>
-          <div className="info-value">{s.formNo}</div>
+          <div className="info-label">Ref ID</div>
+          <div className="info-value">{s.referenceId}</div>
         </div>
         <div className="info-block">
-          <div className="info-label">Sender</div>
-          <div className="info-value">{s.senderName}</div>
+          <div className="info-label">Order ID</div>
+          <div className="info-value">{s.orderId}</div>
         </div>
         <div className="info-block">
-          <div className="info-label">Created</div>
-          <div className="info-value">{s.createdText}</div>
+          <div className="info-label">Quantity</div>
+          <div className="info-value">{s.qty}</div>
         </div>
-        {s.mode && (
-          <div className="info-block">
-            <div className="info-label">Mode</div>
-            <div className="info-value">{s.mode}</div>
-          </div>
-        )}
-        {s.sheetPart && (
-          <div className="info-block">
-            <div className="info-label">Your shipment</div>
-            <div className="info-value">Part {s.sheetPart}</div>
-          </div>
-        )}
         <div className="info-block">
-          <div className="info-label">Delivered</div>
-          <div className="info-value">
-            {s.deliveredCount}/{s.itemCount} items
-          </div>
+          <div className="info-label">Weight</div>
+          <div className="info-value">{s.weight}</div>
+        </div>
+        <div className="info-block">
+          <div className="info-label">ETA</div>
+          <div className="info-value">{s.etaText}</div>
         </div>
       </div>
 
@@ -170,9 +160,100 @@ function HistoryList({ history }) {
   );
 }
 
+function ShipmentCard({ sh, n, total, phases }) {
+  const [open, setOpen] = useState(false);
+  const steps = phases.length;
+  const nextLabel = sh.delivered ? null : phases[sh.activeIndex + 1]?.label;
+  const chipClass = sh.delivered ? "ot-chip-green" : "ot-chip-orange ot-live";
+  const updates = sh.history?.length || 0;
+
+  return (
+    <div className="ot-ship">
+      <div className="ot-ship-head">
+        <div className="ot-ship-info">
+          <div className="ot-ship-title">
+            Shipment {n + 1} of {total}
+            {sh.container && (
+              <span className="ot-ship-cont"> · {sh.container}</span>
+            )}
+          </div>
+          <div className="ot-ship-meta">
+            <span>
+              <b>{sh.qty.toLocaleString()}</b> pkgs
+            </span>
+            {sh.weight > 0 && (
+              <span>
+                <b>{sh.weight.toLocaleString()}</b> kg
+              </span>
+            )}
+            {!sh.delivered && sh.eta && (
+              <span>
+                ETA <b>{fmtDate(sh.eta)}</b>
+              </span>
+            )}
+          </div>
+        </div>
+        <span className={`ot-chip ${chipClass}`}>{sh.status}</span>
+      </div>
+
+      <div
+        className="ot-steps"
+        role="progressbar"
+        aria-label={`Shipment ${n + 1} progress`}
+        aria-valuemin={1}
+        aria-valuemax={steps}
+        aria-valuenow={sh.activeIndex + 1}
+        aria-valuetext={sh.status}
+      >
+        {phases.map((p, k) => (
+          <span
+            key={k}
+            title={p.label}
+            className={`ot-step${
+              k < sh.activeIndex || (sh.delivered && k === sh.activeIndex)
+                ? " done"
+                : k === sh.activeIndex
+                  ? " now"
+                  : ""
+            }`}
+          />
+        ))}
+      </div>
+
+      <div className="ot-ship-step">
+        <span>
+          <b>
+            Step {sh.activeIndex + 1} of {steps}
+          </b>{" "}
+          · {sh.status}
+        </span>
+        {nextLabel && <span className="ot-ship-next">Next: {nextLabel}</span>}
+      </div>
+
+      {updates > 0 && (
+        <>
+          <button
+            type="button"
+            className="ot-link"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? "Hide" : "Show"} updates ({updates})
+            <i
+              className={`fas fa-chevron-down ot-chev${open ? " open" : ""}`}
+            />
+          </button>
+          {open && <HistoryList history={sh.history} />}
+        </>
+      )}
+    </div>
+  );
+}
+
 function ItemCard({ it, phases, i }) {
   const [open, setOpen] = useState(false);
   const pct = Math.round(((it.activeIndex + 1) / phases.length) * 100);
+  const partial = it.shipments.length > 1;
 
   return (
     <div
@@ -191,7 +272,7 @@ function ItemCard({ it, phases, i }) {
         </span>
       </div>
 
-      {!it.terminal && (
+      {!it.terminal && !partial && (
         <div className="ot-mini">
           <div className="ot-mini-fill" />
         </div>
@@ -204,13 +285,32 @@ function ItemCard({ it, phases, i }) {
         <span>
           <b>{it.weight.toLocaleString()}</b> kg
         </span>
-        <span>
-          ETA <b>{it.eta ? fmtDate(it.eta) : "—"}</b>
-        </span>
+        {!partial && (
+          <span>
+            ETA <b>{it.eta ? fmtDate(it.eta) : "—"}</b>
+          </span>
+        )}
+        {partial && (
+          <span>
+            <b>{it.shipments.length}</b> shipments
+          </span>
+        )}
       </div>
 
       {it.terminal ? (
         <TerminalNotice kind={it.terminal} />
+      ) : partial ? (
+        <div className="ot-ships">
+          {it.shipments.map((sh, n) => (
+            <ShipmentCard
+              key={n}
+              sh={sh}
+              n={n}
+              total={it.shipments.length}
+              phases={phases}
+            />
+          ))}
+        </div>
       ) : (
         <>
           <button
@@ -227,20 +327,7 @@ function ItemCard({ it, phases, i }) {
 
           <div className={`ot-collapse${open ? " open" : ""}`}>
             <div className="ot-collapse-inner">
-              {it.shipments.length > 1 ? (
-                it.shipments.map((sh, n) => (
-                  <div key={n} className="ot-shipment">
-                    <p className="ot-sub">
-                      Shipment {n + 1} of {it.shipments.length} ·{" "}
-                      {sh.qty.toLocaleString()} pkgs · {sh.status}
-                      {sh.eta ? ` · ETA ${fmtDate(sh.eta)}` : ""}
-                    </p>
-                    <HistoryList history={sh.history} />
-                  </div>
-                ))
-              ) : (
-                <HistoryList history={it.shipments[0]?.history || it.history} />
-              )}
+              <HistoryList history={it.shipments[0]?.history || it.history} />
             </div>
           </div>
         </>

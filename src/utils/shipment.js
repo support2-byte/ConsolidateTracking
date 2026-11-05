@@ -27,7 +27,30 @@ export function buildShipmentView(raw) {
   const currentStatus = getCurrentStatus(order) || phases[0].label;
   const activeIndex = getActiveIndex(phases, currentStatus);
 
-  const eta = receiver.eta || order.eta;
+  const lastIdx = phases.length - 1;
+  const rankOf = (status) => Math.max(findPhaseIndex(phases, status), 0);
+  const item = (receiver.items || [])[0] || {};
+  const shipments = (item.shipments || []).map((sh) => {
+    const i = rankOf(sh.status);
+    return {
+      qty: Number(sh.qty) || 0,
+      weight: Number(sh.weight) || 0,
+      container: sh.container || null,
+      status: sh.status || phases[0].label,
+      activeIndex: i,
+      delivered: i === lastIdx,
+      eta: sh.eta || null,
+      history: (sh.history || [])
+        .filter((h) => h.status)
+        .sort((a, b) => new Date(a.time) - new Date(b.time)),
+    };
+  });
+  const partialEta = shipments
+    .filter((sh) => !sh.delivered && sh.eta)
+    .map((sh) => sh.eta)
+    .sort((a, b) => new Date(a) - new Date(b))[0];
+
+  const eta = partialEta || receiver.eta || order.eta;
   const latest = [...(receiver.status_history || [])].sort(
     (a, b) => new Date(b.time) - new Date(a.time),
   )[0];
@@ -43,6 +66,7 @@ export function buildShipmentView(raw) {
       terminalKind(order.status) ||
       (receiver.items || []).map((i) => terminalKind(i.status)).find(Boolean) ||
       null,
+    shipments,
     pol: order.place_of_loading ?? "—",
     pod: order.place_of_delivery ?? "—",
     referenceId: receiver.items?.[0]?.tracking_id || "—",

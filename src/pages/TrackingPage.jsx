@@ -7,6 +7,7 @@ import StatusHistory from "../components/StatusHistory";
 import NotifyModal from "../components/NotifyModal";
 import { OrderSummary, OrderReceivers } from "../components/OrderTracking";
 import TerminalNotice from "../components/TerminalNotice";
+import { PartialShipments } from "../components/PartialShipments";
 
 function errorMessageFor(err) {
   const status = err.response?.status;
@@ -163,11 +164,15 @@ export default function TrackingPage({ verified }) {
               <TerminalNotice kind={s.terminal} />
             ) : (
               <>
-                <HorizontalTimeline
-                  phases={s.phases}
-                  activeIndex={s.activeIndex}
-                  currentStatus={s.currentStatus}
-                />
+                {s.shipments?.length > 1 ? (
+                  <PartialShipments s={s} />
+                ) : (
+                  <HorizontalTimeline
+                    phases={s.phases}
+                    activeIndex={s.activeIndex}
+                    currentStatus={s.currentStatus}
+                  />
+                )}
 
                 <div className="actions" id="actions">
                   <button
@@ -195,7 +200,9 @@ export default function TrackingPage({ verified }) {
       </section>
 
       {isOrder && <OrderReceivers s={s} />}
-      {isItem && !s.terminal && <StatusHistory receiver={s.receiver} />}
+      {isItem && !s.terminal && s.shipments?.length === 1 && (
+        <StatusHistory receiver={s.receiver} />
+      )}
 
       {s && (
         <NotifyModal

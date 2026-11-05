@@ -889,6 +889,130 @@ body {
 .ot-terminal-text strong {
   color: var(--rg-orange);
 }
+.ot-ships {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+.ot-ship {
+  border: 1px solid #e6e8ec;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #fff;
+}
+.ot-ship-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px 12px;
+  flex-wrap: wrap;
+}
+.ot-ship-info {
+  min-width: 0;
+}
+.ot-ship-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+.ot-ship-cont {
+  font-weight: 600;
+  color: #0d6c6a;
+  overflow-wrap: anywhere;
+}
+.ot-ship-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+.ot-ship-meta b {
+  color: #1a1a2e;
+}
+
+.ot-steps {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  margin: 14px 0 8px;
+}
+.ot-step {
+  height: 8px;
+  border-radius: 999px;
+  background: #e3e5e8;
+}
+.ot-step.done {
+  background: #1fa84f;
+}
+.ot-step.now {
+  background: #f58220;
+  box-shadow: 0 0 0 3px rgba(245, 130, 32, 0.18);
+}
+
+.ot-ship-step {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: 13px;
+  color: #444;
+}
+.ot-ship-next {
+  color: #888;
+}
+.ot-ship .ot-link {
+  margin-top: 10px;
+}
+.ot-ship .ot-hist {
+  margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .ot-ship {
+    padding: 12px;
+  }
+  .ot-ship-step {
+    flex-direction: column;
+  }
+  .ot-step {
+    height: 6px;
+  }
+}
+
+.ot-partials {
+  display: grid;
+  gap: 16px;
+}
+.ot-partial {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+.ot-partial-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #1a1a2e;
+}
+.ot-partial-title span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.ot-partial .ot-hist {
+  text-align: left;
+}
+.ot-partial .ot-hist li > div {
+  text-align: left;
+}
 
 .content {
   padding-top: 2px;
