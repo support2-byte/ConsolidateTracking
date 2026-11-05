@@ -85,14 +85,38 @@ export function buildOrderView(raw) {
           number: c.container.container_number,
           boxes: Number(c.assign_total_box) || 0,
         }));
-      const idx = rankOf(it.status);
+      const shipments = (it.shipments || []).map((s) => {
+        const i = rankOf(s.status);
+        return {
+          qty: Number(s.qty) || 0,
+          weight: Number(s.weight) || 0,
+          status: s.status,
+          activeIndex: i,
+          delivered: i === lastIdx,
+          eta: s.eta || null,
+          history: (s.history || [])
+            .filter((h) => h.status)
+            .sort((a, b) => new Date(a.time) - new Date(b.time)),
+        };
+      });
+      const idx = shipments.length
+        ? Math.min(...shipments.map((s) => s.activeIndex))
+        : rankOf(it.status);
       const t = new Date(
         it.lastUpdated || history[history.length - 1]?.time || 0,
       ).getTime();
       if (t > latestTime) latestTime = t;
 
-      const eta = it.eta || null;
-      const delivered = idx === lastIdx;
+      const eta =
+        shipments
+          .filter((s) => !s.delivered && s.eta)
+          .map((s) => s.eta)
+          .sort()[0] ||
+        it.eta ||
+        null;
+      const delivered = shipments.length
+        ? shipments.every((s) => s.delivered)
+        : idx === lastIdx;
       if (eta && !delivered) {
         const ms = new Date(eta).getTime();
         if (!isNaN(ms) && (etaMs === null || ms < etaMs)) etaMs = ms;
@@ -115,7 +139,10 @@ export function buildOrderView(raw) {
           .join(" "),
         qty: Number(it.totalNumber) || 0,
         weight: Number(it.weight) || 0,
-        status: it.status || phases[0].label,
+        status: shipments.length
+          ? phases[idx]?.label || phases[0].label
+          : it.status || phases[0].label,
+        shipments,
         activeIndex: idx,
         terminal: orderTerminal || terminalKind(it.status),
         delivered,
@@ -170,5 +197,6 @@ export function buildOrderView(raw) {
     lastUpdated: fmtTime(latestTime ? new Date(latestTime) : new Date()),
     referenceId: order.tracking_id || "—",
     orderId: order.rgl_booking_number || order.booking_ref || "—",
+    sheetPart: order.lookup?.sheetPart || null,
   };
 }

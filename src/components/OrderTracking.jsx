@@ -41,6 +41,12 @@ export function OrderSummary({ s, onNotify }) {
             <div className="info-value">{s.mode}</div>
           </div>
         )}
+        {s.sheetPart && (
+          <div className="info-block">
+            <div className="info-label">Your shipment</div>
+            <div className="info-value">Part {s.sheetPart}</div>
+          </div>
+        )}
         <div className="info-block">
           <div className="info-label">Delivered</div>
           <div className="info-value">
@@ -142,6 +148,28 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
   );
 }
 
+function HistoryList({ history }) {
+  if (!history || history.length === 0)
+    return <p className="ot-empty">No tracking updates yet.</p>;
+  return (
+    <ol className="ot-hist">
+      {history.map((h, k) => (
+        <li
+          key={k}
+          className={k === history.length - 1 ? "current" : ""}
+          style={{ "--i": k }}
+        >
+          <span className="ot-hist-dot" />
+          <div>
+            <div className="ot-hist-status">{h.status}</div>
+            <div className="ot-hist-time">{fmtTime(h.time)}</div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function ItemCard({ it, phases, i }) {
   const [open, setOpen] = useState(false);
   const pct = Math.round(((it.activeIndex + 1) / phases.length) * 100);
@@ -199,24 +227,19 @@ function ItemCard({ it, phases, i }) {
 
           <div className={`ot-collapse${open ? " open" : ""}`}>
             <div className="ot-collapse-inner">
-              {it.history.length === 0 ? (
-                <p className="ot-empty">No tracking updates yet.</p>
+              {it.shipments.length > 1 ? (
+                it.shipments.map((sh, n) => (
+                  <div key={n} className="ot-shipment">
+                    <p className="ot-sub">
+                      Shipment {n + 1} of {it.shipments.length} ·{" "}
+                      {sh.qty.toLocaleString()} pkgs · {sh.status}
+                      {sh.eta ? ` · ETA ${fmtDate(sh.eta)}` : ""}
+                    </p>
+                    <HistoryList history={sh.history} />
+                  </div>
+                ))
               ) : (
-                <ol className="ot-hist">
-                  {it.history.map((h, k) => (
-                    <li
-                      key={k}
-                      className={k === it.history.length - 1 ? "current" : ""}
-                      style={{ "--i": k }}
-                    >
-                      <span className="ot-hist-dot" />
-                      <div>
-                        <div className="ot-hist-status">{h.status}</div>
-                        <div className="ot-hist-time">{fmtTime(h.time)}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+                <HistoryList history={it.shipments[0]?.history || it.history} />
               )}
             </div>
           </div>
