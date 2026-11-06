@@ -200,7 +200,7 @@ export default function TrackingPage({ verified }) {
       </section>
 
       {isOrder && <OrderReceivers s={s} />}
-      {isItem && !s.terminal && s.shipments?.length === 1 && (
+      {isItem && !s.terminal && !(s.shipments?.length > 1) && (
         <StatusHistory receiver={s.receiver} />
       )}
 

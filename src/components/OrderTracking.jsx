@@ -23,9 +23,11 @@ export function OrderSummary({ s, onNotify }) {
       <div className="last-updated">Last updated: {s.lastUpdated}</div>
 
       <div className="order-info">
-        <div className="info-block">
+        <div className="info-block ref-block">
           <div className="info-label">Ref ID</div>
-          <div className="info-value">{s.referenceId}</div>
+          <div className="info-value" id="refId">
+            {s.referenceId}
+          </div>
         </div>
         <div className="info-block">
           <div className="info-label">Order ID</div>
@@ -173,9 +175,6 @@ function ShipmentCard({ sh, n, total, phases }) {
         <div className="ot-ship-info">
           <div className="ot-ship-title">
             Shipment {n + 1} of {total}
-            {sh.container && (
-              <span className="ot-ship-cont"> · {sh.container}</span>
-            )}
           </div>
           <div className="ot-ship-meta">
             <span>
