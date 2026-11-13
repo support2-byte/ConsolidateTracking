@@ -4,6 +4,7 @@ import {
   getCurrentStatus,
   getActiveIndex,
   findPhaseIndex,
+  canonLabel,
   terminalKind,
 } from "./status";
 
@@ -24,7 +25,8 @@ export function buildShipmentView(raw) {
   );
 
   const phases = getPhases(order);
-  const currentStatus = getCurrentStatus(order) || phases[0].label;
+  const currentStatus =
+    canonLabel(phases, getCurrentStatus(order)) || phases[0].label;
   const activeIndex = getActiveIndex(phases, currentStatus);
 
   const lastIdx = phases.length - 1;
@@ -36,7 +38,7 @@ export function buildShipmentView(raw) {
       qty: Number(sh.qty) || 0,
       weight: Number(sh.weight) || 0,
       container: sh.container || null,
-      status: sh.status || phases[0].label,
+      status: phases[i]?.label || sh.status || phases[0].label,
       activeIndex: i,
       delivered: i === lastIdx,
       eta: sh.eta || null,
@@ -55,9 +57,19 @@ export function buildShipmentView(raw) {
     (a, b) => new Date(b.time) - new Date(a.time),
   )[0];
 
+  const allDelivered = shipments.length
+    ? shipments.every((sh) => sh.delivered)
+    : activeIndex === lastIdx;
+
   return {
     order,
-    receiver,
+    receiver: {
+      ...receiver,
+      status_history: (receiver.status_history || []).map((h) => ({
+        ...h,
+        status: canonLabel(phases, h.status),
+      })),
+    },
     phases,
     currentStatus,
     activeIndex,
@@ -72,6 +84,7 @@ export function buildShipmentView(raw) {
     referenceId: receiver.items?.[0]?.tracking_id || "—",
     orderId: order.rgl_booking_number || "—",
     etaText: eta ? fmtDate(eta) : "—",
+    delivered: allDelivered,
     qty: totalQty > 0 ? totalQty : "—",
     weight: totalWeight > 0 ? `${totalWeight} kg` : "—",
     lastUpdated: fmtTime(latest?.time || new Date()),
@@ -98,6 +111,7 @@ export function buildOrderView(raw) {
     const items = (r.shippingDetails || []).map((it) => {
       const history = (it.status_history || [])
         .filter((h) => h.status)
+        .map((h) => ({ ...h, status: canonLabel(phases, h.status) }))
         .sort((a, b) => new Date(a.time) - new Date(b.time));
       const containers = (it.containerDetails || [])
         .filter(
@@ -114,7 +128,7 @@ export function buildOrderView(raw) {
         return {
           qty: Number(s.qty) || 0,
           weight: Number(s.weight) || 0,
-          status: s.status,
+          status: phases[i]?.label || s.status,
           activeIndex: i,
           delivered: i === lastIdx,
           eta: s.eta || null,
@@ -141,7 +155,7 @@ export function buildOrderView(raw) {
       const delivered = shipments.length
         ? shipments.every((s) => s.delivered)
         : idx === lastIdx;
-      if (eta && !delivered) {
+      if (eta) {
         const ms = new Date(eta).getTime();
         if (!isNaN(ms) && (etaMs === null || ms < etaMs)) etaMs = ms;
       }
@@ -165,7 +179,7 @@ export function buildOrderView(raw) {
         weight: Number(it.weight) || 0,
         status: shipments.length
           ? phases[idx]?.label || phases[0].label
-          : it.status || phases[0].label,
+          : canonLabel(phases, it.status) || phases[0].label,
         shipments,
         activeIndex: idx,
         terminal: orderTerminal || terminalKind(it.status),
@@ -218,6 +232,7 @@ export function buildOrderView(raw) {
     qty: totalQty > 0 ? totalQty : "—",
     weight: totalWeight > 0 ? `${totalWeight} kg` : "—",
     etaText: etaIso ? fmtDate(etaIso) : "—",
+    allDelivered: itemCount > 0 && deliveredCount === itemCount,
     lastUpdated: fmtTime(latestTime ? new Date(latestTime) : new Date()),
     referenceId: order.tracking_id || "—",
     orderId: order.rgl_booking_number || order.booking_ref || "—",

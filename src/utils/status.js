@@ -25,6 +25,11 @@ function phaseInfoFor(label) {
   return RGS_PHASES.find((p) => canon(p.label) === canon(label)) || {};
 }
 
+export const canonLabel = (phases, status) => {
+  const idx = findPhaseIndex(phases, status);
+  return idx !== -1 ? phases[idx].label : status;
+};
+
 export function getPhases(order) {
   const seq = Array.isArray(order?.status_sequence)
     ? order.status_sequence

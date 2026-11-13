@@ -42,7 +42,9 @@ export function OrderSummary({ s, onNotify }) {
           <div className="info-value">{s.weight}</div>
         </div>
         <div className="info-block">
-          <div className="info-label">ETA</div>
+          <div className="info-label">
+            {s.allDelivered ? "Delivered" : "ETA"}
+          </div>
           <div className="info-value">{s.etaText}</div>
         </div>
       </div>
@@ -185,9 +187,9 @@ function ShipmentCard({ sh, n, total, phases }) {
                 <b>{sh.weight.toLocaleString()}</b> kg
               </span>
             )}
-            {!sh.delivered && sh.eta && (
+            {sh.eta && (
               <span>
-                ETA <b>{fmtDate(sh.eta)}</b>
+                {sh.delivered ? "Delivered" : "ETA"} <b>{fmtDate(sh.eta)}</b>
               </span>
             )}
           </div>
@@ -284,9 +286,9 @@ function ItemCard({ it, phases, i }) {
         <span>
           <b>{it.weight.toLocaleString()}</b> kg
         </span>
-        {!partial && (
+        {!partial && it.eta && (
           <span>
-            ETA <b>{it.eta ? fmtDate(it.eta) : "—"}</b>
+            {it.delivered ? "Delivered" : "ETA"} <b>{fmtDate(it.eta)}</b>
           </span>
         )}
         {partial && (

@@ -148,7 +148,9 @@ export default function TrackingPage({ verified }) {
                 <div className="info-value">{s.weight}</div>
               </div>
               <div className="info-block">
-                <div className="info-label">Eta</div>
+                <div className="info-label">
+                  {s.delivered ? "Delivered" : "Eta"}
+                </div>
                 <div className="info-value">{s.etaText}</div>
               </div>
             </div>
