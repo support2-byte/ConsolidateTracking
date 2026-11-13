@@ -1931,7 +1931,7 @@ body {
 }
 
 .ot-receivers {
-  max-width: 1100px;
+  max-width: 1300px;
   margin: 0 auto;
 }
 .ot-heading {
@@ -1971,6 +1971,9 @@ body {
   color: #fff;
   background: linear-gradient(135deg, #0d6c6a 0%, #1b263b 100%);
 }
+.ot-card-title {
+  min-width: 0;
+}
 .ot-card-title h4 {
   margin: 0 0 4px;
   font-size: 18px;
@@ -1994,6 +1997,7 @@ body {
   font-weight: 700;
   color: #fff;
   white-space: nowrap;
+  max-width: 100%;
 }
 .ot-chip-blue {
   background: #1976d2;
@@ -2114,6 +2118,12 @@ body {
   background: var(--rg-green);
   animation: ot-grow 1s ease 0.2s forwards;
 }
+
+.ot-ship.delivered .ot-mini-fill {
+  background: var(--rg-green);
+  animation: ot-grow 1s ease 0.2s forwards;
+}
+
 @keyframes ot-grow {
   to {
     width: var(--pct);

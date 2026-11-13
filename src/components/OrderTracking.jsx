@@ -1,8 +1,8 @@
 import { useState } from "react";
 import config from "../config";
 import { fmtDate, fmtTime } from "../utils/format";
-import HorizontalTimeline from "./HorizontalTimeline";
 import TerminalNotice from "./TerminalNotice";
+import HorizontalTimeline from "./HorizontalTimeline";
 
 export function OrderSummary({ s, onNotify }) {
   return (
@@ -171,9 +171,10 @@ function HistoryList({ history }) {
 function ShipmentCard({ sh, n, total, phases }) {
   const [open, setOpen] = useState(false);
   const updates = sh.history?.length || 0;
+  const pct = Math.round(((sh.activeIndex + 1) / phases.length) * 100);
 
   return (
-    <div className="ot-ship">
+    <div className={`ot-ship${sh.delivered ? " delivered" : ""}`}>
       <div className="ot-ship-head">
         <div className="ot-ship-info">
           <div className="ot-ship-title">
@@ -197,11 +198,13 @@ function ShipmentCard({ sh, n, total, phases }) {
         </div>
       </div>
 
-      <HorizontalTimeline
-        phases={phases}
-        activeIndex={sh.activeIndex}
-        currentStatus={sh.status}
-      />
+      <div className="ot-mini">
+        <div className="ot-mini-fill" style={{ "--pct": `${pct}%` }} />
+      </div>
+
+      <div className="ot-ship-step">
+        <span>{sh.status}</span>
+      </div>
 
       {updates > 0 && (
         <>
