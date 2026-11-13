@@ -132,7 +132,9 @@ export default function TrackingPage({ verified }) {
               <div className="info-block ref-block">
                 <div className="info-label">REF ID</div>
                 <div className="info-value" id="refId">
-                  {s.referenceId}
+                  {s.referenceId && s.referenceId !== "—"
+                    ? s.referenceId
+                    : s.inputRef}
                 </div>
               </div>
               <div className="info-block">

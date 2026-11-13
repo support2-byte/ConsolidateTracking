@@ -9,7 +9,9 @@ export function OrderSummary({ s, onNotify }) {
     <div className="ot-fade">
       <div className="ot-banner">
         <span className="ot-banner-label">Tracking ID</span>
-        <span className="ot-banner-id">{s.trackingId}</span>
+        <span className="ot-banner-id">
+          {s.trackingId && s.trackingId !== "—" ? s.trackingId : s.inputRef}
+        </span>
       </div>
 
       {(s.pol || s.pod) && (
@@ -26,7 +28,9 @@ export function OrderSummary({ s, onNotify }) {
         <div className="info-block ref-block">
           <div className="info-label">Ref ID</div>
           <div className="info-value" id="refId">
-            {s.referenceId}
+            {s.referenceId && s.referenceId !== "—"
+              ? s.referenceId
+              : s.inputRef}
           </div>
         </div>
         <div className="info-block">
@@ -166,9 +170,6 @@ function HistoryList({ history }) {
 
 function ShipmentCard({ sh, n, total, phases }) {
   const [open, setOpen] = useState(false);
-  const steps = phases.length;
-  const nextLabel = sh.delivered ? null : phases[sh.activeIndex + 1]?.label;
-  const chipClass = sh.delivered ? "ot-chip-green" : "ot-chip-orange ot-live";
   const updates = sh.history?.length || 0;
 
   return (
@@ -194,42 +195,13 @@ function ShipmentCard({ sh, n, total, phases }) {
             )}
           </div>
         </div>
-        <span className={`ot-chip ${chipClass}`}>{sh.status}</span>
       </div>
 
-      <div
-        className="ot-steps"
-        role="progressbar"
-        aria-label={`Shipment ${n + 1} progress`}
-        aria-valuemin={1}
-        aria-valuemax={steps}
-        aria-valuenow={sh.activeIndex + 1}
-        aria-valuetext={sh.status}
-      >
-        {phases.map((p, k) => (
-          <span
-            key={k}
-            title={p.label}
-            className={`ot-step${
-              k < sh.activeIndex || (sh.delivered && k === sh.activeIndex)
-                ? " done"
-                : k === sh.activeIndex
-                  ? " now"
-                  : ""
-            }`}
-          />
-        ))}
-      </div>
-
-      <div className="ot-ship-step">
-        <span>
-          <b>
-            Step {sh.activeIndex + 1} of {steps}
-          </b>{" "}
-          · {sh.status}
-        </span>
-        {nextLabel && <span className="ot-ship-next">Next: {nextLabel}</span>}
-      </div>
+      <HorizontalTimeline
+        phases={phases}
+        activeIndex={sh.activeIndex}
+        currentStatus={sh.status}
+      />
 
       {updates > 0 && (
         <>

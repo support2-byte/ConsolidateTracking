@@ -11,7 +11,9 @@ export function PartialShipments({ s }) {
             <span>
               {sh.qty.toLocaleString()} pkgs
               {sh.weight > 0 ? ` · ${sh.weight.toLocaleString()} kg` : ""}
-              {!sh.delivered && sh.eta ? ` · ETA ${fmtDate(sh.eta)}` : ""}
+              {sh.eta
+                ? ` · ${sh.delivered ? "Delivered" : "ETA"} ${fmtDate(sh.eta)}`
+                : ""}
             </span>
           </h4>
 
