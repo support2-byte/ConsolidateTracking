@@ -899,6 +899,8 @@ body {
   border-radius: 12px;
   padding: 14px 16px;
   background: #fff;
+  max-width: 100%;
+  overflow: hidden;
 }
 .ot-ship-head {
   display: flex;
@@ -990,6 +992,8 @@ body {
   background: #fff;
   border-radius: 12px;
   padding: 16px;
+  max-width: 100%;
+  overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 .ot-partial-title {
@@ -1585,6 +1589,16 @@ body {
     font-size: 14px;
   }
 
+  .timeline-h-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .timeline-h {
+    min-width: 640px;
+  }
+
   .panel {
     padding: 20px 15px 20px 40px;
   }
@@ -2040,6 +2054,8 @@ body {
   border-radius: 14px;
   padding: 16px 18px;
   background: #fff;
+  max-width: 100%;
+  overflow: hidden;
   animation: ot-fade-up 0.45s ease both;
   animation-delay: calc(var(--i, 0) * 70ms);
   transition:
