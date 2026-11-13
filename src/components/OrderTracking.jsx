@@ -326,7 +326,7 @@ function ItemCard({ it, phases, i }) {
 
           <div className={`ot-collapse${open ? " open" : ""}`}>
             <div className="ot-collapse-inner">
-              <HistoryList history={it.shipments[0]?.history || it.history} />
+              <HistoryList history={it.history} />
             </div>
           </div>
         </>

@@ -6,6 +6,7 @@ export const normStatus = (s) =>
 const STATUS_ALIASES = {
   created: "order created",
   loaded: "loaded into container",
+  "in transit": "shipment in transit",
 };
 
 export const canon = (s) => STATUS_ALIASES[normStatus(s)] || normStatus(s);

@@ -14,37 +14,27 @@ export function getTimezoneLabel() {
   }
 }
 
-export function fmtTime(input) {
-  if (!input) return "";
-  const date = new Date(input);
-  if (isNaN(date.getTime())) return "";
-  try {
-    return new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: USER_TIME_ZONE,
-    }).format(date);
-  } catch {
-    return date.toLocaleString();
-  }
-}
+export const toDate = (d) => {
+  if (d instanceof Date) return d;
+  const s = String(d);
+  return new Date(
+    /[zZ]|[+-]\d{2}:?\d{2}$/.test(s) ? s : s.replace(" ", "T") + "Z",
+  );
+};
 
-export function fmtDate(input) {
-  if (!input) return "";
-  const date = new Date(input);
-  if (isNaN(date.getTime())) return "";
-  try {
-    return new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      timeZone: USER_TIME_ZONE,
-    }).format(date);
-  } catch {
-    return date.toLocaleDateString();
-  }
-}
+export const fmtDate = (d) =>
+  d
+    ? toDate(d).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+
+export const fmtTime = (d) =>
+  d
+    ? toDate(d).toLocaleString("en-GB", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : "—";
