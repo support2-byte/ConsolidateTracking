@@ -746,8 +746,9 @@ body {
   text-align: center;
   font-size: 15px;
   color: var(--rg-subtext);
-  margin-top: 12px;
-  font-weight: 500;
+  margin-top: 15px;
+  margin-bottom: 40px;
+  font-weight: 600;
 }
 
 .note-box {
@@ -970,6 +971,28 @@ body {
 }
 .ot-ship .ot-hist {
   margin-top: 8px;
+}
+
+.ot-items,
+.ot-item,
+.ot-ships,
+.ot-ship {
+  text-align: left;
+}
+.ot-ship {
+  padding: 16px 18px;
+}
+.ot-ship-meta {
+  margin-top: 6px;
+}
+.ot-ship .ot-mini {
+  margin: 12px 0 10px;
+}
+.ot-ship .ot-hist {
+  margin: 10px 0 0 10px;
+}
+.ot-ship .ot-hist li > div {
+  text-align: left;
 }
 
 @media (max-width: 480px) {

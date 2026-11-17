@@ -17,7 +17,7 @@ const config = Object.freeze({
   ENDPOINTS: Object.freeze({
     VERIFY_RECAPTCHA: "/api/internal/verify-recaptcha",
     TRACK_ITEM: "/api/orders/track/item",
-    TRACK_ORDER: "/api/orders/track/order",
+    TRACK_ORDER: "/api/orders/track/public/orders",
     NOTIFY_ME: "/api/orders/notify/me/",
   }),
   SUPPORT_PHONE_DISPLAY: "+971555658321",

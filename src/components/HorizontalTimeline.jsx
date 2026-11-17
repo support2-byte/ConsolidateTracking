@@ -49,8 +49,6 @@ export default function HorizontalTimeline({
       </div>
 
       <div id="statusMsg" className="status-message">
-        <strong>Current Status:</strong> {currentStatus}
-        <br />
         <span style={{ color: "#666", fontSize: "0.95em" }}>{tip}</span>
       </div>
     </>

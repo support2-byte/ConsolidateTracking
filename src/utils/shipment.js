@@ -204,6 +204,7 @@ export function buildOrderView(raw) {
       address: r.receiverAddress || "",
       items,
       leastItem: least,
+      partial: items.some((it) => it.shipments.length > 1),
       activeIndex,
       currentStatus: phases[activeIndex]?.label || "",
       deliveredCount: items.filter((i) => i.delivered).length,
@@ -214,19 +215,39 @@ export function buildOrderView(raw) {
     };
   });
 
+  const allItems = receivers.flatMap((r) => r.items);
+  const leastAll = allItems.reduce(
+    (min, it) =>
+      it.terminal ? min : !min || it.activeIndex < min.activeIndex ? it : min,
+    null,
+  );
+  const activeIndex = leastAll ? leastAll.activeIndex : 0;
+  const currentStatus = phases[activeIndex]?.label || "";
+  const terminal =
+    orderTerminal ||
+    (allItems.length && allItems.every((i) => i.terminal)
+      ? allItems[0].terminal
+      : null);
+
   const etaIso = etaMs ? new Date(etaMs).toISOString() : null;
 
   return {
     order,
     phases,
+    activeIndex,
+    currentStatus,
+    terminal,
+    partial: allItems.some((it) => it.shipments.length > 1),
+    delivered: itemCount > 0 && deliveredCount === itemCount,
+    receiver: { status_history: leastAll ? leastAll.history : [] },
     receivers,
     trackingId: order.tracking_id || "—",
     formNo: order.rgl_booking_number || order.booking_ref || "—",
     senderName: order.sender_name || "—",
     mode: order.transport_type || "",
     createdText: order.created_at ? fmtDate(order.created_at) : "—",
-    pol: order.place_of_loading || "",
-    pod: order.place_of_delivery || "",
+    pol: order.place_of_loading ?? "—",
+    pod: order.place_of_delivery ?? "—",
     itemCount,
     deliveredCount,
     qty: totalQty > 0 ? totalQty : "—",

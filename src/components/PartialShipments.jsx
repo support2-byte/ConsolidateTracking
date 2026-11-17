@@ -1,5 +1,4 @@
 import { fmtDate, fmtTime } from "../utils/format";
-import HorizontalTimeline from "./HorizontalTimeline";
 
 export function PartialShipments({ s }) {
   return (
@@ -16,12 +15,6 @@ export function PartialShipments({ s }) {
                 : ""}
             </span>
           </h4>
-
-          <HorizontalTimeline
-            phases={s.phases}
-            activeIndex={sh.activeIndex}
-            currentStatus={sh.status}
-          />
 
           <ol className="ot-hist">
             {sh.history.map((h, k) => (

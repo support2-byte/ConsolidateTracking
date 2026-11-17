@@ -16,9 +16,9 @@ export function OrderSummary({ s, onNotify }) {
 
       {(s.pol || s.pod) && (
         <div className="route">
-          <span>POL: {s.pol || "—"}</span>
+          <span>{s.pol || "—"}</span>
           <span className="arrow">➜</span>
-          <span>POD: {s.pod || "—"}</span>
+          <span>{s.pod || "—"}</span>
         </div>
       )}
 
@@ -65,9 +65,6 @@ export function OrderSummary({ s, onNotify }) {
 export function OrderReceivers({ s }) {
   return (
     <section className="ot-receivers">
-      <h3 className="ot-heading">
-        Delivery Destinations ({s.receivers.length})
-      </h3>
       {s.receivers.map((r, i) => (
         <ReceiverCard
           key={r.id ?? i}
@@ -119,10 +116,6 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
           <div className="ot-body">
             {r.leastItem && (
               <>
-                <p className="ot-sub">
-                  Overall progress (based on the least advanced item
-                  {r.leastItem ? `: ${r.leastItem.trackingId}` : ""})
-                </p>
                 <HorizontalTimeline
                   phases={phases}
                   activeIndex={r.activeIndex}
@@ -131,18 +124,34 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
               </>
             )}
 
-            <div className="ot-items">
-              {r.items.length === 0 && (
-                <p className="ot-empty">No items found for this receiver.</p>
-              )}
-              {r.items.map((it, k) => (
-                <ItemCard key={it.id ?? k} it={it} phases={phases} i={k} />
-              ))}
-            </div>
+            {r.partial ? (
+              <div className="ot-items">
+                {r.items.map((it, k) => (
+                  <ItemCard key={it.id ?? k} it={it} phases={phases} i={k} />
+                ))}
+              </div>
+            ) : r.leastItem ? (
+              <HistoryList history={r.leastItem.history} />
+            ) : (
+              r.items[0]?.terminal && (
+                <TerminalNotice kind={r.items[0].terminal} />
+              )
+            )}
           </div>
         </div>
       </div>
     </article>
+  );
+}
+
+export function OrderItems({ s }) {
+  const items = s.receivers.flatMap((r) => r.items);
+  return (
+    <div className="ot-items">
+      {items.map((it, k) => (
+        <ItemCard key={it.id ?? k} it={it} phases={s.phases} i={k} />
+      ))}
+    </div>
   );
 }
 
@@ -171,7 +180,6 @@ function HistoryList({ history }) {
 function ShipmentCard({ sh, n, total, phases }) {
   const [open, setOpen] = useState(false);
   const updates = sh.history?.length || 0;
-  const pct = Math.round(((sh.activeIndex + 1) / phases.length) * 100);
 
   return (
     <div className={`ot-ship${sh.delivered ? " delivered" : ""}`}>
@@ -198,13 +206,11 @@ function ShipmentCard({ sh, n, total, phases }) {
         </div>
       </div>
 
-      <div className="ot-mini">
-        <div className="ot-mini-fill" style={{ "--pct": `${pct}%` }} />
-      </div>
-
-      <div className="ot-ship-step">
-        <span>{sh.status}</span>
-      </div>
+      <HorizontalTimeline
+        phases={phases}
+        activeIndex={sh.activeIndex}
+        currentStatus={sh.status}
+      />
 
       {updates > 0 && (
         <>
@@ -238,8 +244,7 @@ function ItemCard({ it, phases, i }) {
     >
       <div className="ot-item-top">
         <div>
-          <div className="ot-item-id">{it.trackingId}</div>
-          <div className="ot-item-desc">{it.description || "—"}</div>
+          <div className="ot-item-id">Item #{i + 1}</div>
         </div>
         <span
           className={`ot-chip ${it.terminal ? "ot-chip-red" : it.delivered ? "ot-chip-green" : "ot-chip-orange ot-live"}`}

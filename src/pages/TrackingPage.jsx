@@ -5,7 +5,7 @@ import { buildShipmentView, buildOrderView } from "../utils/shipment";
 import HorizontalTimeline from "../components/HorizontalTimeline";
 import StatusHistory from "../components/StatusHistory";
 import NotifyModal from "../components/NotifyModal";
-import { OrderSummary, OrderReceivers } from "../components/OrderTracking";
+import { OrderItems } from "../components/OrderTracking";
 import TerminalNotice from "../components/TerminalNotice";
 import { PartialShipments } from "../components/PartialShipments";
 
@@ -114,14 +114,12 @@ export default function TrackingPage({ verified }) {
           </div>
         )}
 
-        {isOrder && <OrderSummary s={s} onNotify={() => setNotifyOpen(true)} />}
-
-        {isItem && (
+        {(isItem || isOrder) && (
           <div className="ot-fade">
             <div className="route" id="route">
-              <span id="pol">POL: {s.pol}</span>
+              <span id="pol">{s.pol}</span>
               <span className="arrow">➜</span>
-              <span id="pod">POD: {s.pod}</span>
+              <span id="pod">{s.pod}</span>
             </div>
 
             <div className="last-updated" id="lastUpdated">
@@ -168,15 +166,19 @@ export default function TrackingPage({ verified }) {
               <TerminalNotice kind={s.terminal} />
             ) : (
               <>
-                {s.shipments?.length > 1 ? (
+                {isItem && s.partial ? (
                   <PartialShipments s={s} />
-                ) : (
+                ) : isOrder && !s.partial ? (
                   <HorizontalTimeline
                     phases={s.phases}
                     activeIndex={s.activeIndex}
                     currentStatus={s.currentStatus}
                   />
+                ) : (
+                  <></>
                 )}
+
+                {isOrder && s.partial && <OrderItems s={s} />}
 
                 <div className="actions" id="actions">
                   <button
@@ -192,21 +194,13 @@ export default function TrackingPage({ verified }) {
             )}
           </div>
         )}
-
-        {isOrder && (
-          <div className="timezone-note-wrap">
-            <span className="timezone-note">
-              <i className="fas fa-clock"></i> All dates and times are shown in
-              your local timezone: {getTimezoneLabel()}
-            </span>
-          </div>
-        )}
       </section>
 
-      {isOrder && <OrderReceivers s={s} />}
-      {isItem && !s.terminal && !(s.shipments?.length > 1) && (
-        <StatusHistory receiver={s.receiver} />
-      )}
+      {(isItem || isOrder) &&
+        !s.terminal &&
+        !(isItem ? s.shipments?.length > 1 : s.partial) && (
+          <StatusHistory receiver={s.receiver} />
+        )}
 
       {s && (
         <NotifyModal
