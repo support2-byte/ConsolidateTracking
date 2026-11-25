@@ -19,11 +19,14 @@ export const USEFUL_LINKS = [
   { label: "About Us", href: `${SITE}/about-us/` },
   { label: "Gallery", href: `${SITE}/rgsl-gallery/` },
   { label: "Faqs", href: `${SITE}/faqs/` },
-  { label: "Blogs", href: `${SITE}/blogs/` },
+  { label: "Blogs", href: `${SITE}/category/blogs/` },
   { label: "Contacts", href: `${SITE}/contacts/` },
   { label: "Privacy Policy", href: `${SITE}/privacy/` },
   { label: "Cookie Policy", href: `${SITE}/cookie-policy/` },
-  { label: "Editorial Policy - Original Content Process", href: `${SITE}/editorial-policy-original-content-process/` },
+  {
+    label: "Editorial Policy - Original Content Process",
+    href: `${SITE}/editorial-policy-original-content-process/`,
+  },
   { label: "Terms and Conditions", href: `${SITE}/terms-and-conditions/` },
 ];
 
@@ -36,14 +39,33 @@ export const OUR_SERVICES = [
   { label: "Special Cargo", href: `${SITE}/special-cargo/` },
   { label: "Refrigerated Cargo", href: `${SITE}/refrigerated-cargo/` },
   { label: "Transit Cargo", href: `${SITE}/transit-cargo/` },
-  { label: "Cross Stuffing Containers", href: `${SITE}/cross-stuffing-containers/` },
+  {
+    label: "Cross Stuffing Containers",
+    href: `${SITE}/cross-stuffing-containers/`,
+  },
 ];
 
 export const SOCIALS = [
-  { label: "Facebook", href: "https://www.facebook.com/RoyalGulfShipping", icon: "fab fa-facebook-f" },
-  { label: "Instagram", href: "https://www.instagram.com/royal.gulfshipping", icon: "fab fa-instagram" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/company/royalgulfshipping/", icon: "fab fa-linkedin-in" },
-  { label: "YouTube", href: "https://www.youtube.com/channel/UC_nXbPuhHgXPMNye833Clng", icon: "fab fa-youtube" },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/RoyalGulfShipping",
+    icon: "fab fa-facebook-f",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/royal.gulfshipping",
+    icon: "fab fa-instagram",
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/royalgulfshipping/",
+    icon: "fab fa-linkedin-in",
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/channel/UC_nXbPuhHgXPMNye833Clng",
+    icon: "fab fa-youtube",
+  },
 ];
 
 export const QUOTE_URL = `${SITE}/get-freight-quote/`;

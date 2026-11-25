@@ -282,7 +282,7 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 9;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .logo {
@@ -302,7 +302,7 @@ body {
   align-items: center;
   gap: 20px;
   margin: 0 20px;
-  width: 100%;
+  flex: 1;
   justify-content: flex-end;
 }
 
@@ -354,7 +354,6 @@ body {
   cursor: pointer;
 }
 
-/* Sub Menu */
 .sub-menu {
   background: var(--gradient);
   color: #fff;
@@ -364,6 +363,11 @@ body {
   justify-content: center;
   gap: 30px;
   flex-wrap: wrap;
+  list-style: none;
+}
+
+.sub-menu li {
+  list-style: none;
 }
 
 .sub-menu a {
@@ -735,6 +739,7 @@ body {
 .timeline-h label {
   margin-top: 20px;
   font-size: 12px;
+  font-weight: 400;
   color: var(--rg-subtext);
   white-space: nowrap;
   overflow: hidden;
@@ -742,12 +747,16 @@ body {
   max-width: 100%;
 }
 
+.timeline-h .step.active label {
+  color: var(--rg-orange);
+}
+
 .status-message {
   text-align: center;
   font-size: 15px;
   color: var(--rg-subtext);
-  margin-top: 15px;
-  margin-bottom: 40px;
+  margin-top: 25px;
+  margin-bottom: 20px;
   font-weight: 600;
 }
 
@@ -836,6 +845,19 @@ body {
   background: var(--rg-orange);
   box-shadow: 0 0 0 2px var(--rg-orange);
   animation: pulse 1.6s ease-in-out infinite;
+}
+
+.panel .item.missing .dot {
+  background: #fff;
+  box-shadow: 0 0 0 2px #cbd5e1;
+  border: 2px dashed #94a3b8;
+}
+.panel .item.missing .status {
+  color: #94a3b8;
+}
+.panel .item.missing .time {
+  font-style: italic;
+  color: #94a3b8;
 }
 
 .item:not(.last)::before {
@@ -1086,15 +1108,23 @@ body {
 
 .eta {
   display: inline-block;
-  padding: 10px 16px;
+  max-width: 100%;
+  padding: 10px 18px;
   border-radius: 999px;
   background: var(--gradient);
   color: #fff;
   font-weight: 800;
   font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
 }
 
-/* Status Logs in Timeline Panel */
+@media (max-width: 480px) {
+  .eta {
+    border-radius: 18px;
+  }
+}
+
 .logs-header {
   margin-top: 40px;
   padding: 20px 0 0;
@@ -1909,8 +1939,17 @@ body {
   }
 }
 
+@keyframes ot-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .ot-fade {
-  animation: ot-fade-up 0.5s ease both;
+  animation: ot-fade-in 0.5s ease both;
 }
 
 .ot-searching {
@@ -2217,6 +2256,19 @@ body {
 .ot-hist-time {
   font-size: 12px;
   color: var(--rg-subtext);
+}
+
+.ot-hist li.missing .ot-hist-dot {
+  background: #fff;
+  box-shadow: 0 0 0 2px #cbd5e1;
+  border: 2px dashed #94a3b8;
+}
+.ot-hist li.missing .ot-hist-status {
+  color: #94a3b8;
+}
+.ot-hist li.missing .ot-hist-time {
+  font-style: italic;
+  color: #94a3b8;
 }
 
 .ot-dropoff {

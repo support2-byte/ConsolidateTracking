@@ -26,7 +26,9 @@ export function PartialShipments({ s }) {
                 <span className="ot-hist-dot" />
                 <div>
                   <div className="ot-hist-status">{h.status}</div>
-                  <div className="ot-hist-time">{fmtTime(h.time)}</div>
+                  {h.time && (
+                    <div className="ot-hist-time">{fmtTime(h.time)}</div>
+                  )}
                 </div>
               </li>
             ))}

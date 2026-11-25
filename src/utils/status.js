@@ -56,3 +56,16 @@ export function getActiveIndex(phases, status) {
   }
   return idx;
 }
+
+export function fillMissing(phases, history = []) {
+  const byLabel = new Map(history.map((h) => [canon(h.status), h]));
+  let last = -1;
+  phases.forEach((p, i) => {
+    if (byLabel.has(canon(p.label))) last = i;
+  });
+  if (last === -1) return history;
+  return phases.slice(0, last + 1).map((p) => ({
+    ...(byLabel.get(canon(p.label)) || { time: null }),
+    status: p.label,
+  }));
+}

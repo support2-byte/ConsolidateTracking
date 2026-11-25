@@ -6,6 +6,7 @@ import {
   findPhaseIndex,
   canonLabel,
   terminalKind,
+  fillMissing,
 } from "./status";
 
 export function buildShipmentView(raw) {
@@ -42,9 +43,13 @@ export function buildShipmentView(raw) {
       activeIndex: i,
       delivered: i === lastIdx,
       eta: sh.eta || null,
-      history: (sh.history || [])
-        .filter((h) => h.status)
-        .sort((a, b) => new Date(a.time) - new Date(b.time)),
+      history: fillMissing(
+        phases,
+        (sh.history || [])
+          .filter((h) => h.status)
+          .map((h) => ({ ...h, status: canonLabel(phases, h.status) }))
+          .sort((a, b) => new Date(a.time) - new Date(b.time)),
+      ),
     };
   });
   const partialEta = shipments
@@ -61,14 +66,27 @@ export function buildShipmentView(raw) {
     ? shipments.every((sh) => sh.delivered)
     : activeIndex === lastIdx;
 
+  const itemType = [
+    ...new Set(
+      receivers
+        .flatMap((r) => (r.items || []).map((i) => i.type))
+        .filter(Boolean),
+    ),
+  ].join(", ");
+
   return {
     order,
     receiver: {
       ...receiver,
-      status_history: (receiver.status_history || []).map((h) => ({
-        ...h,
-        status: canonLabel(phases, h.status),
-      })),
+      status_history: fillMissing(
+        phases,
+        (receiver.status_history || [])
+          .filter((h) => h.status)
+          .map((h) => ({
+            ...h,
+            status: canonLabel(phases, h.status),
+          })),
+      ),
     },
     phases,
     currentStatus,
@@ -86,6 +104,7 @@ export function buildShipmentView(raw) {
     etaText: eta ? fmtDate(eta) : "—",
     delivered: allDelivered,
     qty: totalQty > 0 ? totalQty : "—",
+    itemType,
     weight: totalWeight > 0 ? `${totalWeight} kg` : "—",
     lastUpdated: fmtTime(latest?.time || new Date()),
   };
@@ -109,10 +128,13 @@ export function buildOrderView(raw) {
 
   const receivers = (order.receivers || []).map((r) => {
     const items = (r.shippingDetails || []).map((it) => {
-      const history = (it.status_history || [])
-        .filter((h) => h.status)
-        .map((h) => ({ ...h, status: canonLabel(phases, h.status) }))
-        .sort((a, b) => new Date(a.time) - new Date(b.time));
+      const history = fillMissing(
+        phases,
+        (it.status_history || [])
+          .filter((h) => h.status)
+          .map((h) => ({ ...h, status: canonLabel(phases, h.status) }))
+          .sort((a, b) => new Date(a.time) - new Date(b.time)),
+      );
       const containers = (it.containerDetails || [])
         .filter(
           (c) =>
@@ -132,17 +154,20 @@ export function buildOrderView(raw) {
           activeIndex: i,
           delivered: i === lastIdx,
           eta: s.eta || null,
-          history: (s.history || [])
-            .filter((h) => h.status)
-            .sort((a, b) => new Date(a.time) - new Date(b.time)),
+          history: fillMissing(
+            phases,
+            (s.history || [])
+              .filter((h) => h.status)
+              .map((h) => ({ ...h, status: canonLabel(phases, h.status) }))
+              .sort((a, b) => new Date(a.time) - new Date(b.time)),
+          ),
         };
       });
       const idx = shipments.length
         ? Math.min(...shipments.map((s) => s.activeIndex))
         : rankOf(it.status);
-      const t = new Date(
-        it.lastUpdated || history[history.length - 1]?.time || 0,
-      ).getTime();
+      const lastWithTime = [...history].reverse().find((h) => h.time);
+      const t = new Date(it.lastUpdated || lastWithTime?.time || 0).getTime();
       if (t > latestTime) latestTime = t;
 
       const eta =
@@ -185,6 +210,7 @@ export function buildOrderView(raw) {
         terminal: orderTerminal || terminalKind(it.status),
         delivered,
         eta,
+        type: it.type || "",
         containers,
         consignments: it.consignments || [],
         history,
@@ -230,6 +256,9 @@ export function buildOrderView(raw) {
       : null);
 
   const etaIso = etaMs ? new Date(etaMs).toISOString() : null;
+  const itemType = [
+    ...new Set(allItems.map((i) => i.type).filter(Boolean)),
+  ].join(", ");
 
   return {
     order,
@@ -251,6 +280,7 @@ export function buildOrderView(raw) {
     itemCount,
     deliveredCount,
     qty: totalQty > 0 ? totalQty : "—",
+    itemType,
     weight: totalWeight > 0 ? `${totalWeight} kg` : "—",
     etaText: etaIso ? fmtDate(etaIso) : "—",
     allDelivered: itemCount > 0 && deliveredCount === itemCount,

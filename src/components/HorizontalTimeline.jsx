@@ -13,7 +13,10 @@ export default function HorizontalTimeline({
     return () => clearTimeout(t);
   }, [target]);
 
-  const tip = phases[activeIndex]?.tip || "Tracking your shipment...";
+  const tip =
+    phases[activeIndex]?.msg ||
+    phases[activeIndex]?.tip ||
+    "Tracking your shipment...";
 
   return (
     <>
@@ -40,7 +43,7 @@ export default function HorizontalTimeline({
               return (
                 <div key={phase.label} className={`step ${cls}`}>
                   <div className="node" title={phase.tip}></div>
-                  <label style={{ fontWeight: "bold" }}>{phase.label}</label>
+                  <label>{phase.label}</label>
                 </div>
               );
             })}

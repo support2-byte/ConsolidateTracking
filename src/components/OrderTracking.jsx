@@ -4,6 +4,11 @@ import { fmtDate, fmtTime } from "../utils/format";
 import TerminalNotice from "./TerminalNotice";
 import HorizontalTimeline from "./HorizontalTimeline";
 
+const fmtWeight = (w) => {
+  const n = parseFloat(String(w).replace(/,/g, ""));
+  return Number.isFinite(n) ? `${n.toLocaleString("en-US")} KG` : "—";
+};
+
 export function OrderSummary({ s, onNotify }) {
   return (
     <div className="ot-fade">
@@ -40,10 +45,11 @@ export function OrderSummary({ s, onNotify }) {
         <div className="info-block">
           <div className="info-label">Quantity</div>
           <div className="info-value">{s.qty}</div>
+          {s.itemType && <div className="info-sub">{s.itemType}</div>}
         </div>
         <div className="info-block">
           <div className="info-label">Weight</div>
-          <div className="info-value">{s.weight}</div>
+          <div className="info-value">{fmtWeight(s.weight)}</div>
         </div>
         <div className="info-block">
           <div className="info-label">
@@ -158,6 +164,7 @@ export function OrderItems({ s }) {
 function HistoryList({ history }) {
   if (!history || history.length === 0)
     return <p className="ot-empty">No tracking updates yet.</p>;
+
   return (
     <ol className="ot-hist">
       {history.map((h, k) => (
@@ -169,7 +176,7 @@ function HistoryList({ history }) {
           <span className="ot-hist-dot" />
           <div>
             <div className="ot-hist-status">{h.status}</div>
-            <div className="ot-hist-time">{fmtTime(h.time)}</div>
+            {h.time && <div className="ot-hist-time">{fmtTime(h.time)}</div>}
           </div>
         </li>
       ))}
@@ -244,7 +251,10 @@ function ItemCard({ it, phases, i }) {
     >
       <div className="ot-item-top">
         <div>
-          <div className="ot-item-id">Item #{i + 1}</div>
+          <div className="ot-item-id">
+            Item #{i + 1}
+            {it.type ? ` · ${it.type}` : ""}
+          </div>
         </div>
         <span
           className={`ot-chip ${it.terminal ? "ot-chip-red" : it.delivered ? "ot-chip-green" : "ot-chip-orange ot-live"}`}

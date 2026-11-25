@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { trackShipment } from "../api/client";
-import { getTimezoneLabel } from "../utils/format";
 import { buildShipmentView, buildOrderView } from "../utils/shipment";
 import HorizontalTimeline from "../components/HorizontalTimeline";
 import StatusHistory from "../components/StatusHistory";
@@ -8,11 +7,12 @@ import NotifyModal from "../components/NotifyModal";
 import { OrderItems } from "../components/OrderTracking";
 import TerminalNotice from "../components/TerminalNotice";
 import { PartialShipments } from "../components/PartialShipments";
+import ExpectedArrival from "../components/ExpectedArrival";
 
 function errorMessageFor(err) {
   const status = err.response?.status;
-  if (status === 404)
-    return "Tracking Not Found — please check your tracking ID";
+  if (status === 404 || status === 401 || status === 403)
+    return "No records found for this Reference ID.";
   if (status >= 500) return "Server error — please try again later";
   if (err.response) {
     return err.response.data?.message || `Request failed: ${status}`;
@@ -21,6 +21,26 @@ function errorMessageFor(err) {
     return "The request timed out. Please try again.";
   return "Network error — check your internet or try again later";
 }
+
+const shortPlace = (p) =>
+  !p || p === "—"
+    ? "—"
+    : p
+        .split(",")[0]
+        .replace(/\s+Division$/i, "")
+        .trim()
+        .toUpperCase();
+
+const withUnit = (qty, type) => {
+  if (qty === "—" || !type) return String(qty);
+  const t = Number(qty) > 1 && !/s$/i.test(type) ? `${type}s` : type;
+  return `${qty} ${t}`;
+};
+
+const fmtWeight = (w) => {
+  const n = parseFloat(String(w).replace(/,/g, ""));
+  return Number.isFinite(n) ? `${n.toLocaleString("en-US")} KG` : "—";
+};
 
 export default function TrackingPage({ verified }) {
   const [refInput, setRefInput] = useState(
@@ -75,6 +95,7 @@ export default function TrackingPage({ verified }) {
 
   const isOrder = s?.kind === "order";
   const isItem = s?.kind === "item";
+  const showsPartial = isItem ? s?.shipments?.length > 1 : s?.partial;
 
   return (
     <main className="container1">
@@ -116,14 +137,14 @@ export default function TrackingPage({ verified }) {
 
         {(isItem || isOrder) && (
           <div className="ot-fade">
-            <div className="route" id="route">
-              <span id="pol">{s.pol}</span>
-              <span className="arrow">➜</span>
-              <span id="pod">{s.pod}</span>
+            <div className="last-updated" id="lastUpdated">
+              Last updated on: {s.lastUpdated}
             </div>
 
-            <div className="last-updated" id="lastUpdated">
-              Last updated: {s.lastUpdated}
+            <div className="route" id="route">
+              <span id="pol">{shortPlace(s.pol)}</span>
+              <span className="arrow">➜</span>
+              <span id="pod">{shortPlace(s.pod)}</span>
             </div>
 
             <div className="order-info" id="orderInfo">
@@ -141,25 +162,18 @@ export default function TrackingPage({ verified }) {
               </div>
               <div className="info-block">
                 <div className="info-label">Quantity</div>
-                <div className="info-value">{s.qty}</div>
+                <div className="info-value">{withUnit(s.qty, s.itemType)}</div>
               </div>
               <div className="info-block">
                 <div className="info-label">Weight</div>
-                <div className="info-value">{s.weight}</div>
+                <div className="info-value">{fmtWeight(s.weight)}</div>
               </div>
               <div className="info-block">
                 <div className="info-label">
-                  {s.delivered ? "Delivered" : "Eta"}
+                  {s.delivered ? "Shipment Delivered" : "Eta"}
                 </div>
                 <div className="info-value">{s.etaText}</div>
               </div>
-            </div>
-
-            <div className="timezone-note-wrap">
-              <span className="timezone-note">
-                <i className="fas fa-clock"></i> All dates and times are shown
-                in your local timezone: {getTimezoneLabel()}
-              </span>
             </div>
 
             {s.terminal ? (
@@ -180,6 +194,12 @@ export default function TrackingPage({ verified }) {
 
                 {isOrder && s.partial && <OrderItems s={s} />}
 
+                {s.delivered && showsPartial && (
+                  <p className="status-message">
+                    {s.phases[s.phases.length - 1]?.msg}
+                  </p>
+                )}
+
                 <div className="actions" id="actions">
                   <button
                     className="btn"
@@ -196,11 +216,15 @@ export default function TrackingPage({ verified }) {
         )}
       </section>
 
-      {(isItem || isOrder) &&
-        !s.terminal &&
-        !(isItem ? s.shipments?.length > 1 : s.partial) && (
-          <StatusHistory receiver={s.receiver} />
-        )}
+      {(isItem || isOrder) && !s.terminal && !showsPartial && (
+        <StatusHistory receiver={s.receiver} delivered={s.delivered} />
+      )}
+
+      {(isItem || isOrder) && !s.terminal && showsPartial && (
+        <section className="panel">
+          <ExpectedArrival delivered={s.delivered} etaText={s.etaText} />
+        </section>
+      )}
 
       {s && (
         <NotifyModal
