@@ -55,7 +55,7 @@ export function buildShipmentView(raw) {
   const partialEta = shipments
     .filter((sh) => !sh.delivered && sh.eta)
     .map((sh) => sh.eta)
-    .sort((a, b) => new Date(a) - new Date(b))[0];
+    .sort((a, b) => new Date(b) - new Date(a))[0];
 
   const eta = partialEta || receiver.eta || order.eta;
   const latest = [...(receiver.status_history || [])].sort(
@@ -176,7 +176,7 @@ export function buildOrderView(raw) {
         shipments
           .filter((s) => !s.delivered && s.eta)
           .map((s) => s.eta)
-          .sort((a, b) => new Date(a) - new Date(b))[0] ||
+          .sort((a, b) => new Date(b) - new Date(a))[0] ||
         it.eta ||
         null;
       const delivered = shipments.length
@@ -184,7 +184,7 @@ export function buildOrderView(raw) {
         : idx === lastIdx;
       if (eta) {
         const ms = new Date(eta).getTime();
-        if (!isNaN(ms) && (etaMs === null || ms < etaMs)) etaMs = ms;
+        if (!isNaN(ms) && (etaMs === null || ms > etaMs)) etaMs = ms;
       }
 
       totalQty += aQty;
