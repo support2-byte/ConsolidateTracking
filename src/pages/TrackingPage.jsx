@@ -167,10 +167,12 @@ export default function TrackingPage({ verified }) {
                 <div className="info-label">Weight</div>
                 <div className="info-value">{fmtWeight(s.weight)}</div>
               </div>
-              <div className="info-block">
-                <div className="info-label">{statusLabel || "Eta"}</div>
-                <div className="info-value">{s.etaText}</div>
-              </div>
+              {!showsPartial && (
+                <div className="info-block">
+                  <div className="info-label">{statusLabel || "Eta"}</div>
+                  <div className="info-value">{s.etaText}</div>
+                </div>
+              )}
             </div>
 
             {s.terminal ? (
@@ -214,8 +216,8 @@ export default function TrackingPage({ verified }) {
       {(isItem || isOrder) && !s.terminal && !showsPartial && (
         <StatusHistory
           receiver={s.receiver}
-          delivered={s.delivered}
           statusLabel={statusLabel}
+          etaText={s.etaText}
         />
       )}
 

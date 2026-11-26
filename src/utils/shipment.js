@@ -42,6 +42,7 @@ export function buildShipmentView(raw) {
       status: phases[i]?.label || sh.status || phases[0].label,
       activeIndex: i,
       delivered: i === lastIdx,
+      ready: phases[i]?.label === "Ready for Delivery",
       eta: sh.eta || null,
       history: fillMissing(
         phases,
@@ -160,6 +161,7 @@ export function buildOrderView(raw) {
           status: phases[i]?.label || s.status,
           activeIndex: i,
           delivered: i === lastIdx,
+          ready: phases[i]?.label === "Ready for Delivery",
           eta: s.eta || null,
           history: fillMissing(
             phases,

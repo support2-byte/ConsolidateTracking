@@ -10,10 +10,18 @@ export function PartialShipments({ s }) {
             <span>
               {sh.qty.toLocaleString()} pkgs
               {sh.weight > 0 ? ` · ${sh.weight.toLocaleString()} kg` : ""}
-              {sh.eta
-                ? ` · ${sh.delivered ? "Delivered" : "ETA"} ${fmtDate(sh.eta)}`
-                : ""}
             </span>
+            {sh.eta && (
+              <span className={`ot-eta-chip${sh.delivered ? " done" : ""}`}>
+                <i className="fas fa-calendar-alt" />
+                {sh.delivered
+                  ? "Delivered"
+                  : sh.ready
+                    ? "Ready for Delivery"
+                    : "ETA"}
+                : {fmtDate(sh.eta)}
+              </span>
+            )}
           </h4>
 
           <ol className="ot-hist">

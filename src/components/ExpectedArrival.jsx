@@ -1,14 +1,16 @@
 import config from "../config";
 
 export default function ExpectedArrival({ statusLabel, etaText }) {
-  if (!statusLabel && (!etaText || etaText === "—")) return null;
+  const date = etaText && etaText !== "—" ? etaText : "To be confirmed";
 
   return (
     <div style={{ textAlign: "center", marginTop: 18 }}>
       <span className="eta">
         {statusLabel === "Shipment Delivered"
           ? "Shipment Delivered"
-          : `Expected Arrival: ${statusLabel || etaText}`}
+          : statusLabel === "Ready for Delivery"
+            ? `Ready for Delivery: ${date}`
+            : `Expected Arrival: ${date}`}
       </span>
       <p
         style={{

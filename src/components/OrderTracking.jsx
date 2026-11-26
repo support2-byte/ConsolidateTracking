@@ -1,5 +1,4 @@
 import { useState } from "react";
-import config from "../config";
 import { fmtDate, fmtTime } from "../utils/format";
 import TerminalNotice from "./TerminalNotice";
 import HorizontalTimeline from "./HorizontalTimeline";
@@ -121,13 +120,11 @@ function ReceiverCard({ r, index, phases, defaultOpen }) {
         <div className="ot-collapse-inner">
           <div className="ot-body">
             {r.leastItem && (
-              <>
-                <HorizontalTimeline
-                  phases={phases}
-                  activeIndex={r.activeIndex}
-                  currentStatus={r.currentStatus}
-                />
-              </>
+              <HorizontalTimeline
+                phases={phases}
+                activeIndex={r.activeIndex}
+                currentStatus={r.currentStatus}
+              />
             )}
 
             {r.partial ? (
@@ -196,21 +193,28 @@ function ShipmentCard({ sh, n, total, phases }) {
             Shipment {n + 1} of {total}
           </div>
           <div className="ot-ship-meta">
-            <span>
+            <span className="ot-ship-tag">
               <b>{sh.qty.toLocaleString()}</b> pkgs
             </span>
             {sh.weight > 0 && (
-              <span>
+              <span className="ot-ship-tag">
                 <b>{sh.weight.toLocaleString()}</b> kg
-              </span>
-            )}
-            {sh.eta && (
-              <span>
-                {sh.delivered ? "Delivered" : "ETA"} <b>{fmtDate(sh.eta)}</b>
               </span>
             )}
           </div>
         </div>
+
+        {sh.eta && (
+          <span className={`ot-eta-chip${sh.delivered ? " done" : ""}`}>
+            <i className="fas fa-calendar-alt" />
+            {sh.delivered
+              ? "Delivered"
+              : sh.ready
+                ? "Ready for Delivery"
+                : "ETA"}
+            : {fmtDate(sh.eta)}
+          </span>
+        )}
       </div>
 
       <HorizontalTimeline

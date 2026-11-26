@@ -2,7 +2,7 @@ import config from "../config";
 import { fmtTime, fmtDate } from "../utils/format";
 import ExpectedArrival from "./ExpectedArrival";
 
-export default function StatusHistory({ receiver, statusLabel }) {
+export default function StatusHistory({ receiver, statusLabel, etaText }) {
   const history = (receiver?.status_history || []).filter((h) => h.status);
 
   return (
@@ -23,10 +23,7 @@ export default function StatusHistory({ receiver, statusLabel }) {
         );
       })}
 
-      <ExpectedArrival
-        statusLabel={statusLabel}
-        etaText={receiver?.eta ? fmtDate(receiver.eta) : ""}
-      />
+      <ExpectedArrival statusLabel={statusLabel} etaText={etaText} />
     </section>
   );
 }

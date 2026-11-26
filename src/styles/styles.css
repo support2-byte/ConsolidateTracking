@@ -2328,3 +2328,24 @@ body {
 .actions + .ot-partials {
   margin-top: 24px;
 }
+
+.ot-eta-chip {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--rg-orange);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+.ot-eta-chip i {
+  font-size: 13px;
+}
+.ot-eta-chip.done {
+  background: var(--rg-green);
+}
