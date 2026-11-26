@@ -4,6 +4,7 @@ export default function HorizontalTimeline({
   phases,
   activeIndex,
   currentStatus,
+  hideMessage = false,
 }) {
   const target = ((activeIndex + 1) / phases.length) * 100;
 
@@ -51,9 +52,11 @@ export default function HorizontalTimeline({
         </div>
       </div>
 
-      <div id="statusMsg" className="status-message">
-        <span style={{ color: "#666", fontSize: "0.95em" }}>{tip}</span>
-      </div>
+      {!hideMessage && (
+        <div id="statusMsg" className="status-message">
+          <span style={{ color: "#666", fontSize: "0.95em" }}>{tip}</span>
+        </div>
+      )}
     </>
   );
 }

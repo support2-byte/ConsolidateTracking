@@ -177,23 +177,18 @@ export default function TrackingPage({ verified }) {
               <TerminalNotice kind={s.terminal} />
             ) : (
               <>
-                {isItem && s.partial ? (
-                  <PartialShipments s={s} />
-                ) : isOrder && !s.partial ? (
+                {!showsPartial && (
                   <HorizontalTimeline
                     phases={s.phases}
                     activeIndex={s.activeIndex}
                     currentStatus={s.currentStatus}
                   />
-                ) : (
-                  <></>
                 )}
 
-                {isOrder && s.partial && <OrderItems s={s} />}
-
-                {s.delivered && showsPartial && (
+                {showsPartial && (
                   <p className="status-message">
-                    {s.phases[s.phases.length - 1]?.msg}
+                    {s.phases[s.activeIndex]?.msg ||
+                      s.phases[s.activeIndex]?.tip}
                   </p>
                 )}
 
@@ -207,6 +202,9 @@ export default function TrackingPage({ verified }) {
                     Notify Me
                   </button>
                 </div>
+
+                {isItem && showsPartial && <PartialShipments s={s} />}
+                {isOrder && showsPartial && <OrderItems s={s} />}
               </>
             )}
           </div>

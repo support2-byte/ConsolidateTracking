@@ -217,6 +217,7 @@ function ShipmentCard({ sh, n, total, phases }) {
         phases={phases}
         activeIndex={sh.activeIndex}
         currentStatus={sh.status}
+        hideMessage
       />
 
       {updates > 0 && (
