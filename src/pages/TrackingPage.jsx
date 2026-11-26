@@ -22,14 +22,7 @@ function errorMessageFor(err) {
   return "Network error — check your internet or try again later";
 }
 
-const shortPlace = (p) =>
-  !p || p === "—"
-    ? "—"
-    : p
-        .split(",")[0]
-        .replace(/\s+Division$/i, "")
-        .trim()
-        .toUpperCase();
+const shortPlace = (p) => (!p || p === "—" ? "—" : p.trim().toUpperCase());
 
 const withUnit = (qty, type) => {
   if (qty === "—" || !type) return String(qty);
