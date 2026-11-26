@@ -176,7 +176,7 @@ export function buildOrderView(raw) {
         shipments
           .filter((s) => !s.delivered && s.eta)
           .map((s) => s.eta)
-          .sort()[0] ||
+          .sort((a, b) => new Date(a) - new Date(b))[0] ||
         it.eta ||
         null;
       const delivered = shipments.length

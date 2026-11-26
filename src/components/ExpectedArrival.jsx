@@ -5,7 +5,11 @@ export default function ExpectedArrival({ statusLabel, etaText }) {
 
   return (
     <div style={{ textAlign: "center", marginTop: 18 }}>
-      <span className="eta">Expected Arrival: {statusLabel || etaText}</span>
+      <span className="eta">
+        {statusLabel === "Shipment Delivered"
+          ? "Shipment Delivered"
+          : `Expected Arrival: ${statusLabel || etaText}`}
+      </span>
       <p
         style={{
           marginTop: 10,
