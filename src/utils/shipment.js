@@ -128,6 +128,8 @@ export function buildOrderView(raw) {
 
   const receivers = (order.receivers || []).map((r) => {
     const items = (r.shippingDetails || []).map((it) => {
+      const aQty = Number(it.assignedQty ?? it.totalNumber) || 0;
+      const aWeight = Number(it.assignedWeight ?? it.weight) || 0;
       const history = fillMissing(
         phases,
         (it.status_history || [])
@@ -185,8 +187,8 @@ export function buildOrderView(raw) {
         if (!isNaN(ms) && (etaMs === null || ms < etaMs)) etaMs = ms;
       }
 
-      totalQty += Number(it.totalNumber) || 0;
-      totalWeight += Number(it.weight) || 0;
+      totalQty += aQty;
+      totalWeight += aWeight;
       itemCount += 1;
       if (delivered) deliveredCount += 1;
 
@@ -200,8 +202,8 @@ export function buildOrderView(raw) {
         ]
           .filter(Boolean)
           .join(" "),
-        qty: Number(it.totalNumber) || 0,
-        weight: Number(it.weight) || 0,
+        qty: aQty,
+        weight: aWeight,
         status: shipments.length
           ? phases[idx]?.label || phases[0].label
           : canonLabel(phases, it.status) || phases[0].label,

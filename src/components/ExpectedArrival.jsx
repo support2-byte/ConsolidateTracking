@@ -1,13 +1,11 @@
 import config from "../config";
 
-export default function ExpectedArrival({ delivered, etaText }) {
-  if (!delivered && (!etaText || etaText === "—")) return null;
+export default function ExpectedArrival({ statusLabel, etaText }) {
+  if (!statusLabel && (!etaText || etaText === "—")) return null;
 
   return (
     <div style={{ textAlign: "center", marginTop: 18 }}>
-      <span className="eta">
-        Expected Arrival: {delivered ? "Shipment Delivered" : etaText}
-      </span>
+      <span className="eta">Expected Arrival: {statusLabel || etaText}</span>
       <p
         style={{
           marginTop: 10,

@@ -93,6 +93,12 @@ export default function TrackingPage({ verified }) {
 
   const s = shipment;
 
+  const statusLabel = s?.delivered
+    ? "Shipment Delivered"
+    : s?.currentStatus === "Ready for Delivery"
+      ? "Ready for Delivery"
+      : null;
+
   const isOrder = s?.kind === "order";
   const isItem = s?.kind === "item";
   const showsPartial = isItem ? s?.shipments?.length > 1 : s?.partial;
@@ -169,9 +175,7 @@ export default function TrackingPage({ verified }) {
                 <div className="info-value">{fmtWeight(s.weight)}</div>
               </div>
               <div className="info-block">
-                <div className="info-label">
-                  {s.delivered ? "Shipment Delivered" : "Eta"}
-                </div>
+                <div className="info-label">{statusLabel || "Eta"}</div>
                 <div className="info-value">{s.etaText}</div>
               </div>
             </div>
@@ -217,12 +221,16 @@ export default function TrackingPage({ verified }) {
       </section>
 
       {(isItem || isOrder) && !s.terminal && !showsPartial && (
-        <StatusHistory receiver={s.receiver} delivered={s.delivered} />
+        <StatusHistory
+          receiver={s.receiver}
+          delivered={s.delivered}
+          statusLabel={statusLabel}
+        />
       )}
 
       {(isItem || isOrder) && !s.terminal && showsPartial && (
         <section className="panel">
-          <ExpectedArrival delivered={s.delivered} etaText={s.etaText} />
+          <ExpectedArrival statusLabel={statusLabel} etaText={s.etaText} />
         </section>
       )}
 
