@@ -134,8 +134,14 @@ export function buildOrderView(raw) {
 
   const receivers = (order.receivers || []).map((r) => {
     const items = (r.shippingDetails || []).map((it) => {
-      const aQty = Number(it.assignedQty ?? it.totalNumber) || 0;
-      const aWeight = Number(it.assignedWeight ?? it.weight) || 0;
+      const hasAssigned =
+        Number(it.assignedQty) > 0 && Number(it.assignedWeight) > 0;
+      const aQty = hasAssigned
+        ? Number(it.assignedQty)
+        : Number(it.totalNumber) || 0;
+      const aWeight = hasAssigned
+        ? Number(it.assignedWeight)
+        : Number(it.weight) || 0;
       const history = fillMissing(
         phases,
         (it.status_history || [])
